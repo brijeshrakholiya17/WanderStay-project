@@ -25,6 +25,13 @@ app.set("view engine","ejs");
 app.set("views", path.join(__dirname,"views"));
 app.use(express.static(path.join(__dirname,"/public")));
 app.use(express.static(path.join(__dirname,"/assets")));
+
+// Serve the red SVG favicon at the legacy filename so browsers requesting
+// "/wanderlust icon.png" will receive the red SVG without needing a PNG binary.
+// Serve favicon at a safe URL (no spaces) to avoid URL encoding/cache issues
+app.get('/wanderlust-icon.png', (req, res) => {
+    return res.sendFile(path.join(__dirname, 'assets', 'compass-fav.svg'));
+});
 app.use(methodOverride('_method'));
 app.use(express.urlencoded({extended : true}));
 app.engine('ejs',ejsMate);
