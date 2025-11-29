@@ -98,6 +98,7 @@ The project follows a structured Model-View-Controller pattern:
  ┣ 📂 public      # Static Assets (CSS, JS, Images)
  ┣ 📂 utils       # Helper Functions & Error Handlers
  ┗ 📜 app.js      # Main Entry Point
+```
 
 ## 👨‍💻 Author
 
