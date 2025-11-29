@@ -1,0 +1,287 @@
+body{
+    margin: 0;
+    padding: 0;
+    font-family: "Plus Jakarta Sans", sans-serif !important;
+    font-style: normal;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.container{
+    flex: 1;
+}
+
+/* header */
+.navbar{
+    height: 6rem;
+    background-color: white;
+}
+
+.navbar-nav{
+    max-height: 6rem;
+    overflow: hidden;
+}
+
+.btn-search{
+    width: 3.2rem !important;
+    height: 3rem !important;
+    background-color: #fe424d !important;
+    border-radius: 50% !important;
+    color: white !important;
+    margin-left: 0.5rem;
+}   
+.btn-search:hover{
+    background-color: #ff0a1a !important;
+}
+
+.search-btn{
+    padding: 0 2rem 0 1rem !important;
+    height: 3rem !important;
+    border-radius: 20px !important;
+}
+
+.menu{
+    background-color: white;
+}
+
+#compass{
+    color: #fe424d;
+    font-size: 2rem;
+    margin-left: 2vw;
+}
+
+.nav-link{
+    color: #222222 !important;
+}
+
+.nav-home{
+    margin-right: 10px;
+}
+
+/* Language Selector Container */
+.language-container {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 5px 10px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.language-container:hover {
+    background-color: #e9ecef;
+}
+
+/* Label Text */
+.language-label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    margin-right: 5px;
+}
+
+/* Google Translate Dropdown */
+.custom-translate {
+    display: inline-block;
+    border-radius: 8px; /* Adjust as needed */
+    overflow: hidden; /* Ensures rounded corners apply properly */
+}
+
+.goog-te-gadget {
+    font-family: 'Arial', sans-serif !important;
+    font-size: 14px !important;
+}
+
+/* Hide the default Google Translate branding */
+.goog-te-gadget img {
+    display: none !important;
+}
+
+.goog-te-gadget select {
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: bold;
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: none !important;
+}
+
+/* Remove Google Translate Banner */
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+
+/* Prevent body shifting down when the banner appears */
+body {
+    top: 0px !important;
+    position: static !important;
+}
+
+/* Hide Google Translate Widget Frame */
+.goog-te-gadget {
+    font-size: 0px !important; /* Hide default text */
+}
+
+/* footer */
+footer{
+    background-color: #dadada95;
+    align-items: center;
+    height: 80px;
+    margin-top: 50px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+footer .left{
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: 1vw;
+}
+footer .left a{
+    text-decoration: none;
+    color: black;
+}
+
+footer .right{
+    display: flex;
+    flex-direction: row;
+    gap: 1.5vw;
+}
+
+footer .right a{
+    color: black;
+    display: flex;
+    flex-direction: row;
+    text-decoration: none;
+    align-items: center;
+    gap: 0.25vw;
+    font-weight: 500;
+}
+
+.fa-brands{
+    cursor: pointer;
+    font-size: 3vh;
+    transition: transform 0.5s ease;
+}
+.fa-brands:hover{
+    transform: scale(1.25);
+}
+
+/* card style */
+#card-anchor{
+    text-decoration: none !important;
+}
+
+.listing-card{
+    margin-bottom: 2rem;
+    cursor: pointer;
+    border: none !important;
+}
+
+.card-img-top{
+    border-radius: 1rem !important;
+    width: 100% !important;
+    object-fit: cover !important;
+}
+
+.card-body{
+    padding: 0 !important;
+}
+
+.card-text{
+    font-weight: 400;
+}
+
+/* Card overlay effect */
+.card-img-overlay{
+    text-align: center;
+    align-content: center;
+    opacity: 0;
+    font-weight: 700;
+    background-color: rgba(255, 255, 255, 0.538);
+    border-radius: 1rem !important;
+    height: 87%;
+    width: 100%;
+    transition: 0.35s ease;
+}
+
+.card-img-overlay:hover{
+    opacity: 1;
+}
+
+/* New page */
+.add-btn{
+    background-color: #fe424d !important;
+    border: none !important;
+    width: 4rem !important;
+}
+
+.signup-btn{
+    border: none !important;
+    width: 5rem !important;
+}
+
+/* Edit page */
+.edit-btn{
+    background-color: #fe424d !important;
+    border: none !important;
+    width: 4rem !important;
+}
+
+/* Show page */
+.show-img{
+    height: 35vh !important;
+}
+
+.btns{
+    display: flex;
+    gap: 1rem;
+}
+
+.finaledit-btn{
+    background-color: #fe424d !important;
+    border: none !important;
+    width: 5rem !important;
+}
+
+.edit-del-section{
+    flex-wrap: wrap !important;
+}
+
+#rating{
+    border: none !important;
+}
+
+
+
+
+/* @media (min-width : 770px) {
+    .menu{
+        position: relative;
+    }
+    
+}
+
+@media (max-width : 770px) {
+    .menu{
+        position: absolute;
+        top: 70px;
+        right: 10px;
+        text-align: center;
+        width: 10rem !important;
+        border-radius: 15px !important;
+    }
+
+    .menu a:hover{
+        color: #fe424d !important;
+    }
+    
+} */

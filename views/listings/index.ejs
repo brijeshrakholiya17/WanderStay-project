@@ -1,0 +1,226 @@
+<% layout("/layouts/boilerplate") %>
+
+<style>
+    .page1{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    body {
+        background-color: #FAF9F6 !important;
+    }
+
+    .first {
+        margin: auto;
+        width: 100%;
+        background-color: #FAF9F6 !important;
+        z-index: 10;
+    }
+
+    #filters {
+        padding-top: 1.5rem;
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        align-items: baseline;
+        align-content: center;
+        width: max-content; 
+        max-width: 100%; 
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    #filters::-webkit-scrollbar {
+        display: none;
+    }
+
+    #filters::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 3px;
+    }
+
+    .filter {
+        min-width: 90px;
+        cursor: pointer;
+        opacity: 0.5;
+        text-align: center;
+        transition: 0.45s ease;
+        border-bottom: 3px solid rgba(0, 0, 0, 0);
+        text-decoration: none;
+        color: black;
+        flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    .filter:hover {
+        opacity: 1;
+        border-bottom: 3px solid #dadada;
+    }
+
+    .nav2{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+        align-items: baseline;
+        width: 100%;
+        height: 12vh;
+    }
+
+    .filter div i{
+        font-size: 1.20rem;
+    }
+
+    .filter p{
+        font-weight: 500;
+        font-size: 0.80rem;
+    }
+
+    .tax-toggle{
+        min-width: 14rem;
+        align-self: center;
+        border: 1px solid rgba(0, 0, 0, 0.241);
+        border-radius: 10px;
+        height: 3.25rem;
+        padding: 1rem;
+        font-size: 0.87rem;
+        font-weight: 500;
+        margin-left: 1.8rem;
+    }
+    .tax-toggle:hover{
+        background-color: #dadada60;
+        border: 1px solid rgb(0, 0, 0);
+    }
+
+    .tax-info{
+        display: none;
+    }
+    
+    .card{
+        background-color: #FAF9F6 !important;
+    }
+</style>
+
+<body>
+    <div class="page1">
+        <div class="first mb-2" style="position: sticky;top: 6rem;">
+            <div class="nav2 border-bottom">
+                <div id="filters">
+                    <a href="/listings/?value=Trending" class="filter">
+                        <div><i class="fa-solid fa-fire"></i></div>
+                        <p>Trending</p>
+                    </a>
+                    
+                    <a href="/listings/?value=Room" class="filter">
+                        <div><i class="fa-solid fa-bed"></i></div>
+                        <p>Room</p>
+                    </a>
+                    <a href="/listings/?value=Beach" class="filter">
+                        <div><i class="fa-solid fa-umbrella-beach"></i></div>
+                        <p>Beach</p>
+                    </a>
+                    <a href="/listings/?value=Arctic" class="filter">
+                        <div><i class="fa-solid fa-snowflake"></i></div>
+                        <p>Arctic</p>
+                    </a>
+                    <a href="/listings/?value=Castle" class="filter">
+                        <div><i class="fa-solid fa-chess-rook"></i></div>
+                        <p>Castle</p>
+                    </a>
+                    <a href="/listings/?value=Amazing pools" class="filter">
+                        <div><i class="fa-solid fa-water-ladder"></i></div>
+                        <p>Amazing pools</p>
+                    </a>
+                    <a href="/listings/?value=Vineyard" class="filter">
+                        <div><i class="fa-solid fa-wine-glass"></i></div>
+                        <p>Vineyard</p>
+                    </a>
+                    <a href="/listings/?value=Boats" class="filter">
+                        <div><i class="fa-solid fa-sailboat"></i></div>
+                        <p>Boats</p>
+                    </a>
+                    <a href="/listings/?value=Mountains" class="filter">
+                        <div><i class="fa-solid fa-mountain-sun"></i></div>
+                        <p>Mountains</p>
+                    </a>
+                    <a href="/listings/?value=Top cities" class="filter">
+                        <div><i class="fa-solid fa-mountain-city"></i></div>
+                        <p>Top cities</p>
+                    </a>
+                    <a href="/listings/?value=Bed & Breakfasts" class="filter">
+                        <div><i class="fa-solid fa-mug-hot"></i></div>
+                        <p>Bed & Breakfasts</p>
+                    </a>
+                    <a href="/listings/?value=Golfing" class="filter">
+                        <div><i class="fa-solid fa-golf-ball-tee"></i></div>
+                        <p>Golfing</p>
+                    </a>
+                    <a href="/listings/?value=Creative spaces" class="filter">
+                        <div><i class="fa-solid fa-palette"></i></div>
+                        <p>Creative spaces</p>
+                    </a>
+                    <a href="/listings/?value=Towers" class="filter">
+                        <div><i class="fa-solid fa-tower-observation"></i></div>
+                        <p>Towers</p>
+                    </a>
+            </div>
+            <div class="tax-toggle">
+                <div class="form-check-reverse form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
+                    <label class="form-check-label" for="flexSwitchCheckDefault">Display total after taxes</label>
+                </div>
+            </div>
+            </div>
+        </div>
+    
+        <div class="listings">
+            <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1" >
+    
+                <%for(data of listing){%>
+                    <a href="/listings/<%=data._id%>" id="card-anchor">
+                        <div class="card col listing-card">
+                            <img src="<%=data.image.url%>" class="card-img-top" alt="listing_img" style="height: 20rem;">
+                            <div class="card-img-overlay"></div>
+                            <div class="card-body">
+                                <p class="card-text">
+                                    <b><%=data.title%></b> <br>
+                                    <i class="fa-solid fa-indian-rupee-sign"></i> 
+                                    <span class="price" data-original="<%=data.price.toLocaleString()%>" data-tax="<%= (data.price * 0.17 + data.price).toFixed(2) %>">
+                                        <%=data.price.toLocaleString()%>
+                                    </span>/night
+                                    <!-- <i class="fa-solid fa-indian-rupee-sign"></i> <%=data.price.toLocaleString()%>/night<i class="tax-info">&nbsp; &nbsp;<%=data.price * 0.17 + data.price%></i> -->
+                                </p>
+                                
+                            </div>
+                        </div>
+                    </a>
+                <%}%>
+    
+            </div>
+        </div>
+    </div>
+</body>
+
+<script>
+    document.getElementById("flexSwitchCheckDefault").addEventListener("change", function() {
+        const priceElements = document.querySelectorAll(".price"); // Select all price elements in the cards
+
+        priceElements.forEach(priceElement => {
+            if (this.checked) {
+                priceElement.textContent = priceElement.getAttribute("data-tax"); // Show price with tax
+            } else {
+                priceElement.textContent = priceElement.getAttribute("data-original"); // Show original price
+            }
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+    const filtersContainer = document.getElementById("filters");
+
+    filtersContainer.addEventListener("wheel", function (event) {
+        event.preventDefault(); // Prevent vertical scrolling
+        filtersContainer.scrollLeft += event.deltaY; // Scroll horizontally
+    });
+});
+
+</script>
