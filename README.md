@@ -99,24 +99,11 @@ The project follows a structured Model-View-Controller pattern:
  ┣ 📂 utils       # Helper Functions & Error Handlers
  ┗ 📜 app.js      # Main Entry Point
 
-👨‍💻 Author
-Brijesh Rakholiya
+## 👨‍💻 Author
 
-LinkedIn Profile * GitHub Profile
+**Brijesh Rakholiya**
+- [LinkedIn Profile](https://www.linkedin.com/in/YOUR-LINKEDIN-USERNAME-HERE)
+- [GitHub Profile](https://github.com/brijeshrakholiya17)
 
 Created with ❤️ and Node.js
 
----
-
-### **Why this README works for recruiters:**
-
-1.  **The "Live Demo" is at the top:** Recruiters spend 6-10 seconds on a profile. They want to *see* it works immediately.
-2.  **Elevator Pitch:** The "Project Overview" clearly explains *what* it is and *why* you built it (MVC architecture).
-3.  **Features List:** It proves you didn't just copy code; you implemented complex features like Auth, Maps, and Image Uploads.
-4.  **Tech Stack Table:** Easy to scan to see if you know the required technologies (Node, Mongo, Express).
-5.  **Local Setup Instructions:** Shows you understand professional developer workflows (`git clone`, `.env` setup).
-
-**Final Polish:**
-* Take a screenshot of your website's home page.
-* Upload it to your repository (e.g., inside an `assets` folder) or use an image hosting link.
-* Replace the `![Project Banner](...)` link in the Markdown above with your screenshot to make it look 10x better.
