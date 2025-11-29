@@ -2,7 +2,7 @@
 
 > **A full-stack Airbnb clone connecting travelers with unique stays around the world.**
 
-![Project Banner](https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3)
+![WanderStay Banner](https://raw.githubusercontent.com/brijeshrakholiya17/WanderStay-project/main/assets/Wanderlust.jpg)
 ### 🚀 **Live Demo:** [View WanderStay Live](https://wanderstay-project-jcnv.onrender.com)
 
 ---
@@ -103,7 +103,7 @@ The project follows a structured Model-View-Controller pattern:
 ## 👨‍💻 Author
 
 **Brijesh Rakholiya**
-- [LinkedIn Profile](https://www.linkedin.com/in/YOUR-LINKEDIN-USERNAME-HERE)
+- [LinkedIn Profile](https://www.linkedin.com/in/brijeshrakholiya17)
 - [GitHub Profile](https://github.com/brijeshrakholiya17)
 
 Created with ❤️ and Node.js
