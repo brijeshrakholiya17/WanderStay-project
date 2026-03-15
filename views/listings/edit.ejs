@@ -1,57 +1,424 @@
 <% layout("/layouts/boilerplate") %>
-<body>
 
-    <div class="row">
-        <div class="col-8 offset-2">
-            <br>
-            <h3>Edit your Listing</h3>
-            <form class="needs-validation" method="post" action="/listings/<%=listing._id%>?_method=PUT" novalidate enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="title" class="form-label">Title</label>
-                    <input type="text" name="title" value="<%=listing.title%>" class="form-control" required>
-                    <div class="valid-feedback">Title looks good!</div>
+<style>
+    body {
+        background-color: #FAF9F6 !important;
+        font-family: "Plus Jakarta Sans", sans-serif;
+    }
+
+    /* --- Page Layout --- */
+    .edit-page-container {
+        max-width: 1100px;
+        margin: 3rem auto 5rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 2rem;
+        letter-spacing: -0.5px;
+    }
+
+    /* --- Split Grid Layout --- */
+    .layout-grid {
+        display: grid;
+        grid-template-columns: 1fr 2.2fr;
+        gap: 3rem; /* Reduced gap slightly for better flow on mid-sized screens */
+    }
+
+    /* --- Left Side: Host Tips Sidebar --- */
+    .tips-sidebar {
+        position: sticky;
+        top: 6.5rem;
+        height: fit-content;
+    }
+    
+    .tip-box {
+        background-color: #ffffff;
+        border-radius: 1.2rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #ebebeb;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    .tip-box i {
+        font-size: 1.8rem;
+        color: #fe424d;
+        margin-bottom: 1rem;
+    }
+
+    .tip-box h5 {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: #222;
+    }
+
+    .tip-box p {
+        font-size: 0.9rem;
+        color: #717171;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* --- Right Side: The Form Card --- */
+    .form-section {
+        background: #ffffff;
+        border: 1px solid #ebebeb;
+        border-radius: 1.5rem;
+        padding: 3rem;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.04);
+    }
+
+    .form-section-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 2rem;
+    }
+
+    /* --- Premium Floating Labels --- */
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        border: 1px solid #b0b0b0;
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        height: 60px;
+        font-size: 1rem;
+        color: #222;
+        box-shadow: none !important;
+        transition: all 0.2s ease;
+    }
+
+    .form-floating > label {
+        padding: 1rem 1.2rem;
+        color: #717171;
+        font-weight: 500;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #222;
+        border-width: 2px;
+        padding: calc(1rem - 1px) calc(1.2rem - 1px);
+    }
+
+    .form-floating > textarea.form-control {
+        height: 150px;
+        padding-top: 1.5rem;
+        resize: vertical;
+    }
+
+    /* --- Image Upload & Preview --- */
+    .image-preview-card {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        background: #f8f9fa;
+        border: 1px solid #ebebeb;
+        padding: 1.2rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+
+    .preview-img {
+        width: 100px;
+        height: 75px;
+        border-radius: 8px;
+        object-fit: cover;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .upload-zone {
+        border: 2px dashed #b0b0b0;
+        border-radius: 12px;
+        padding: 2.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: #fff;
+        position: relative;
+    }
+
+    .upload-zone:hover {
+        border-color: #222;
+        background-color: #fcfcfc;
+    }
+
+    .upload-zone i {
+        font-size: 2.5rem;
+        color: #222;
+        margin-bottom: 1rem;
+    }
+
+    .upload-zone h6 {
+        font-weight: 600;
+        margin-bottom: 0.2rem;
+    }
+
+    .upload-zone input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    /* --- Price Input Group --- */
+    .price-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .price-symbol {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 60px;
+        background-color: #fff;
+        border: 1px solid #b0b0b0;
+        border-right: none;
+        border-radius: 12px 0 0 12px;
+        font-size: 1.2rem;
+        color: #222;
+    }
+
+    .price-input-floating {
+        flex-grow: 1;
+    }
+
+    .price-input-floating .form-control {
+        border-radius: 0 12px 12px 0;
+    }
+
+    /* --- Buttons --- */
+    .btn-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #ebebeb;
+    }
+
+    .btn-cancel {
+        color: #222;
+        font-weight: 600;
+        text-decoration: underline;
+        padding: 0.5rem;
+        transition: color 0.2s ease;
+    }
+
+    .btn-cancel:hover {
+        color: #fe424d;
+    }
+
+    .btn-save {
+        background-color: #fe424d;
+        color: #fff;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0.9rem 2.5rem;
+        border-radius: 10px;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-save:hover {
+        background-color: #d9353f;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(254, 66, 77, 0.2);
+    }
+
+    /* =========================================
+       100% RESPONSIVE MEDIA QUERIES 
+       ========================================= */
+       
+    /* Tablet / Small Desktop */
+    @media (max-width: 991px) {
+        .layout-grid {
+            grid-template-columns: 1fr; /* Stacks the sidebar and form */
+            gap: 1.5rem;
+        }
+        .tips-sidebar {
+            position: relative;
+            top: 0;
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            scrollbar-width: none; /* Hide scrollbar for cleaner look */
+            padding-bottom: 0.5rem;
+        }
+        .tip-box {
+            min-width: 260px; /* Allows cards to scroll horizontally */
+            margin-bottom: 0;
+        }
+        .tips-sidebar::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    /* Mobile Phones */
+    @media (max-width: 768px) {
+        .edit-page-container {
+            padding: 0 1rem;
+            margin-top: 2rem;
+        }
+        .page-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-section {
+            padding: 1.5rem; /* Reclaim horizontal space inside the form */
+            border-radius: 1rem;
+        }
+        .image-preview-card {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+        .btn-actions {
+            flex-direction: column-reverse; /* Stacks Cancel below Save */
+            gap: 1.2rem;
+            margin-top: 2rem;
+        }
+        .btn-save {
+            width: 100%; /* Full width button on mobile */
+        }
+        .btn-cancel {
+            text-decoration: none; /* Cleaner look on mobile */
+            text-align: center;
+            width: 100%;
+        }
+    }
+
+    /* Extra Small Phones (e.g. iPhone SE) */
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 1.5rem;
+        }
+        .form-section-title {
+            font-size: 1.2rem;
+        }
+        .tip-box {
+            min-width: 240px;
+            padding: 1.2rem;
+        }
+    }
+</style>
+
+<div class="edit-page-container">
+    
+    <h1 class="page-title">Edit your listing</h1>
+
+    <div class="layout-grid">
+        
+        <div class="tips-sidebar">
+            <div class="tip-box">
+                <i class="fa-solid fa-pen-nib"></i>
+                <h5>Catchy Titles</h5>
+                <p>Properties with unique, descriptive titles stand out more in search results.</p>
+            </div>
+            <div class="tip-box">
+                <i class="fa-regular fa-image"></i>
+                <h5>High-Quality Photos</h5>
+                <p>Your cover photo is your first impression. Make sure it's bright and welcoming!</p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Property Details</h3>
+            
+            <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate class="needs-validation" enctype="multipart/form-data">
+                
+                <div class="form-floating mb-4">
+                    <input type="text" name="listing[title]" value="<%= listing.title %>" class="form-control" id="title" placeholder="Property Title" required>
+                    <label for="title">Property Title</label>
+                    <div class="invalid-feedback px-2">Please enter a valid title.</div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="textarea" class="form-label">Description</label>
-                    <textarea name="textarea" class="form-control" required><%=listing.description%></textarea>
-                    <div class="invalid-feedback">Please enter a short description</div>
+                <div class="form-floating mb-4">
+                    <textarea name="listing[description]" class="form-control" id="description" placeholder="Description" required><%= listing.description %></textarea>
+                    <label for="description">Property Description</label>
+                    <div class="invalid-feedback px-2">Please provide a short description.</div>
                 </div>
 
-                <div class="mb-3">
-                    Original Listing Image <br>
-                    <img src="<%=originalImageUrl%>" alt="originalimage" height="200px" width="250px">
+                <div class="image-preview-card">
+                    <img src="<%= listing.image.url %>" alt="Current Image" class="preview-img">
+                    <div>
+                        <h6 class="m-0 fw-bold">Current Cover Image</h6>
+                        <p class="text-muted m-0" style="font-size: 0.85rem;">This is currently visible to guests.</p>
+                    </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="image" class="form-label">Upload new Image</label>
-                    <input type="file" name="image" value="<%=listing.image%>" class="form-control">
+                <div class="upload-zone mb-4">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <h6>Drag your new image here</h6>
+                    <p class="text-muted m-0" style="font-size: 0.85rem;">Or click to browse your files. Leave blank to keep current image.</p>
+                    <input type="file" name="listing[image]" id="image">
                 </div>
 
-                <div class="row">
-                    <div class="mb-3 col-md-4">
-                        <label for="price" class="form-label">Price</label>
-                        <input type="number" name="price" value="<%=listing.price%>" class="form-control" required>
-                        <div class="invalid-feedback">Price should be valid</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="price-group">
+                            <div class="price-symbol"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                            <div class="form-floating price-input-floating">
+                                <input type="number" name="listing[price]" value="<%= listing.price %>" class="form-control" id="price" placeholder="Price" required>
+                                <label for="price">Price per night</label>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-3 col-md-8">
-                        <label for="country" class="form-label">Country</label>
-                        <input type="text" name="country" value="<%=listing.country%>" class="form-control" required>
-                        <div class="invalid-feedback">Country name should be valid</div>
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select name="listing[category]" class="form-select" id="category" required>
+                                <option value="Trending" <%= listing.category === 'Trending' ? 'selected' : '' %>>Trending</option>
+                                <option value="Room" <%= listing.category === 'Room' ? 'selected' : '' %>>Room</option>
+                                <option value="Beach" <%= listing.category === 'Beach' ? 'selected' : '' %>>Beach</option>
+                                <option value="Arctic" <%= listing.category === 'Arctic' ? 'selected' : '' %>>Arctic</option>
+                                <option value="Castle" <%= listing.category === 'Castle' ? 'selected' : '' %>>Castle</option>
+                                <option value="Amazing pools" <%= listing.category === 'Amazing pools' ? 'selected' : '' %>>Amazing pools</option>
+                                <option value="Vineyard" <%= listing.category === 'Vineyard' ? 'selected' : '' %>>Vineyard</option>
+                                <option value="Boats" <%= listing.category === 'Boats' ? 'selected' : '' %>>Boats</option>
+                                <option value="Mountains" <%= listing.category === 'Mountains' ? 'selected' : '' %>>Mountains</option>
+                                <option value="Top cities" <%= listing.category === 'Top cities' ? 'selected' : '' %>>Top cities</option>
+                                <option value="Bed & Breakfasts" <%= listing.category === 'Bed & Breakfasts' ? 'selected' : '' %>>Bed & Breakfasts</option>
+                                <option value="Golfing" <%= listing.category === 'Golfing' ? 'selected' : '' %>>Golfing</option>
+                                <option value="Creative spaces" <%= listing.category === 'Creative spaces' ? 'selected' : '' %>>Creative spaces</option>
+                                <option value="Towers" <%= listing.category === 'Towers' ? 'selected' : '' %>>Towers</option>
+                            </select>
+                            <label for="category">Category</label>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="location" class="form-label">Location</label>
-                    <input type="text" name="location" value="<%=listing.location%>" class="form-control" required>
-                    <div class="invalid-feedback">Location should be valid</div>
+                <div class="row g-3 mb-2">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" name="listing[location]" value="<%= listing.location %>" class="form-control" id="location" placeholder="Location" required>
+                            <label for="location">City / Location</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" name="listing[country]" value="<%= listing.country %>" class="form-control" id="country" placeholder="Country" required>
+                            <label for="country">Country</label>
+                        </div>
+                    </div>
                 </div>
 
-                <button class="btn btn-dark edit-btn">Edit</button>
+                <div class="btn-actions">
+                    <a href="/listings/<%= listing._id %>" class="btn-cancel">Cancel editing</a>
+                    <button type="submit" class="btn-save">Save Changes</button>
+                </div>
+
             </form>
         </div>
     </div>
-
-    
-</body>
+</div>

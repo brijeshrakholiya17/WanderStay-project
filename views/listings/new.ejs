@@ -1,69 +1,416 @@
 <% layout("/layouts/boilerplate") %>
-<body>
-    <div class="row">
-        <div class="col-8 offset-2">
-            <br>
-            <h1 class="mb-3">Create new listing</h1>
-            <form method="post" action="/listings" class="needs-validation" novalidate enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="title" class="form-label">Title</label>
-                    <input type="text" name="title" class="form-control" placeholder="Enter catchy title" required>
-                    <div class="valid-feedback">Title looks good!</div>
-                </div>
 
-                <div class="mb-3">
-                    <label for="description" class="form-label">Description</label>
-                    <textarea name="description" class="form-control" placeholder="Enter description" ></textarea>
-                    <div class="invalid-feedback">Please enter a short description</div>
-                </div>
+<style>
+    body {
+        background-color: #FAF9F6 !important;
+        font-family: "Plus Jakarta Sans", sans-serif;
+    }
+
+    /* --- Page Layout --- */
+    .create-page-container {
+        max-width: 1100px;
+        margin: 3rem auto 5rem auto;
+        padding: 0 1.5rem;
+    }
+
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 2rem;
+        letter-spacing: -0.5px;
+    }
+
+    /* --- Split Grid Layout --- */
+    .layout-grid {
+        display: grid;
+        grid-template-columns: 1fr 2.2fr;
+        gap: 3rem; 
+    }
+
+    /* --- Left Side: Host Tips Sidebar --- */
+    .tips-sidebar {
+        position: sticky;
+        top: 6.5rem;
+        height: fit-content;
+    }
+    
+    .tip-box {
+        background-color: #ffffff;
+        border-radius: 1.2rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #ebebeb;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+
+    .tip-box i {
+        font-size: 1.8rem;
+        color: #fe424d;
+        margin-bottom: 1rem;
+    }
+
+    .tip-box h5 {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        color: #222;
+    }
+
+    .tip-box p {
+        font-size: 0.9rem;
+        color: #717171;
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* --- Right Side: The Form Card --- */
+    .form-section {
+        background: #ffffff;
+        border: 1px solid #ebebeb;
+        border-radius: 1.5rem;
+        padding: 3rem;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.04);
+    }
+
+    .form-section-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 2rem;
+    }
+
+    /* --- Premium Floating Labels --- */
+    .form-floating > .form-control,
+    .form-floating > .form-select {
+        border: 1px solid #b0b0b0;
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        height: 60px;
+        font-size: 1rem;
+        color: #222;
+        box-shadow: none !important;
+        transition: all 0.2s ease;
+    }
+
+    /* PERFECT FORM-SELECT OVERRIDE SO TEXT DOESN'T OVERLAP THE LABEL */
+    .form-floating > .form-select {
+        padding-top: 1.625rem;
+        padding-bottom: 0.625rem;
+    }
+
+    .form-floating > label {
+        padding: 1rem 1.2rem;
+        color: #717171;
+        font-weight: 500;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #222;
+        border-width: 2px;
+        padding: calc(1rem - 1px) calc(1.2rem - 1px);
+    }
+    
+    .form-select:focus {
+        padding-top: calc(1.625rem - 1px);
+        padding-bottom: calc(0.625rem - 1px);
+    }
+
+    .form-floating > textarea.form-control {
+        height: 150px;
+        padding-top: 1.5rem;
+        resize: vertical;
+    }
+
+    /* --- Image Upload Zone --- */
+    .upload-zone {
+        border: 2px dashed #b0b0b0;
+        border-radius: 12px;
+        padding: 3rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background-color: #fafafa;
+        position: relative;
+    }
+
+    .upload-zone:hover {
+        border-color: #222;
+        background-color: #fcfcfc;
+    }
+
+    .upload-zone i {
+        font-size: 2.8rem;
+        color: #222;
+        margin-bottom: 1rem;
+    }
+
+    .upload-zone h6 {
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        color: #222;
+    }
+
+    .upload-zone input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    /* --- Price Input Group --- */
+    .price-group {
+        display: flex;
+        align-items: center;
+    }
+    
+    .price-symbol {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 50px;
+        height: 60px;
+        background-color: #fff;
+        border: 1px solid #b0b0b0;
+        border-right: none;
+        border-radius: 12px 0 0 12px;
+        font-size: 1.2rem;
+        color: #222;
+    }
+
+    .price-input-floating {
+        flex-grow: 1;
+    }
+
+    .price-input-floating .form-control {
+        border-radius: 0 12px 12px 0;
+    }
+
+    /* --- Buttons --- */
+    .btn-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #ebebeb;
+    }
+
+    .btn-cancel {
+        color: #222;
+        font-weight: 600;
+        text-decoration: underline;
+        padding: 0.5rem;
+        transition: color 0.2s ease;
+    }
+
+    .btn-cancel:hover {
+        color: #fe424d;
+    }
+
+    .btn-save {
+        background-color: #fe424d;
+        color: #fff;
+        font-weight: 600;
+        font-size: 1rem;
+        padding: 0.9rem 2.5rem;
+        border-radius: 10px;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .btn-save:hover {
+        background-color: #d9353f;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(254, 66, 77, 0.2);
+    }
+
+    /* =========================================
+       100% RESPONSIVE MEDIA QUERIES 
+       ========================================= */
+       
+    @media (max-width: 991px) {
+        .layout-grid {
+            grid-template-columns: 1fr; 
+            gap: 1.5rem;
+        }
+        .tips-sidebar {
+            position: relative;
+            top: 0;
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            scrollbar-width: none; 
+            padding-bottom: 0.5rem;
+        }
+        .tip-box {
+            min-width: 260px; 
+            margin-bottom: 0;
+        }
+        .tips-sidebar::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .create-page-container {
+            padding: 0 1rem;
+            margin-top: 2rem;
+        }
+        .page-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+        .form-section {
+            padding: 1.5rem; 
+            border-radius: 1rem;
+        }
+        .btn-actions {
+            flex-direction: column-reverse; 
+            gap: 1.2rem;
+            margin-top: 2rem;
+        }
+        .btn-save {
+            width: 100%; 
+        }
+        .btn-cancel {
+            text-decoration: none; 
+            text-align: center;
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .page-title {
+            font-size: 1.5rem;
+        }
+        .form-section-title {
+            font-size: 1.2rem;
+        }
+        .tip-box {
+            min-width: 240px;
+            padding: 1.2rem;
+        }
+    }
+</style>
+
+<div class="create-page-container">
+    
+    <h1 class="page-title">Create a new listing</h1>
+
+    <div class="layout-grid">
+        
+        <div class="tips-sidebar">
+            <div class="tip-box">
+                <i class="fa-solid fa-house-chimney-window"></i>
+                <h5>Make it stand out</h5>
+                <p>Write a catchy title and detailed description to let guests know what makes your place special.</p>
+            </div>
+            <div class="tip-box">
+                <i class="fa-solid fa-camera-retro"></i>
+                <h5>First impressions matter</h5>
+                <p>Upload a high-quality, well-lit photo of your property's best feature to attract more bookings.</p>
+            </div>
+            <div class="tip-box">
+                <i class="fa-solid fa-tags"></i>
+                <h5>Set a competitive price</h5>
+                <p>Start with a slightly lower price to get your first few reviews and build your reputation.</p>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="form-section-title">Property Details</h3>
+            
+            <form method="POST" action="/listings" class="needs-validation" novalidate enctype="multipart/form-data">
                 
-                <div class="mb-3">
-                    <label for="image" class="form-label">Upload Listing Image</label>
-                    <input type="file" name="image" class="form-control" required>
+                <div class="form-floating mb-4">
+                    <input type="text" name="title" class="form-control" id="title" placeholder="Property Title" required>
+                    <label for="title">Property Title</label>
+                    <div class="valid-feedback px-2">Title looks good!</div>
+                    <div class="invalid-feedback px-2">Please enter a catchy title.</div>
                 </div>
 
-                <div class="row">
-                    <div class="mb-3 col-md-4">
-                        <label for="price" class="form-label">Price</label>
-                        <input type="text" name="price" class="form-control" placeholder="1300" required>
-                        <div class="invalid-feedback">Price should be valid</div>
-                    </div>
+                <div class="form-floating mb-4">
+                    <textarea name="description" class="form-control" id="description" placeholder="Description" required></textarea>
+                    <label for="description">Property Description</label>
+                    <div class="invalid-feedback px-2">Please enter a short description.</div>
+                </div>
 
-                    <div class="mb-3 col-md-4">
-                        <label for="country" class="form-label">Country</label>
-                        <input type="text" name="country" class="form-control" placeholder="India" >
-                        <div class="invalid-feedback">Country name should be valid</div>
-                    </div>
-
-                    <div class="mb-3 col-md-4">
-                        <label for="location" class="form-label">Location</label>
-                        <input type="text" name="location" class="form-control" placeholder="Rajkot,Gujarat" >
-                        <div class="invalid-feedback">Location should be valid</div>
+                <div class="mb-4">
+                    <label class="form-label mb-2 d-block">Cover Photo</label>
+                    <div class="upload-zone">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <h6>Drag your image here</h6>
+                        <p class="text-muted m-0" style="font-size: 0.85rem;">Or click to browse your files. High quality JPG or PNG.</p>
+                        <input type="file" name="image" id="image" required>
+                        <div class="invalid-feedback d-block mt-2" style="display: none;">Please upload an image.</div>
                     </div>
                 </div>
 
-                <div class="mb-3 col-md-4">
-                    <label for="category" class="form-label">Category</label>
-                    <select name="category" id="category" class="form-control" required>
-                        
-                        <option value="Trending">Trending</option>
-                        <option value="Room">Room</option>
-                        <option value="Beach">Beach</option>
-                        <option value="Arctic">Arctic</option>
-                        <option value="Castle">Castle</option>
-                        <option value="Amazing pools">Amazing pools</option>
-                        <option value="Vineyard">Vineyard</option>
-                        <option value="Boats">Boats</option>
-                        <option value="Mountains">Mountains</option>
-                        <option value="Top cities">Top cities</option>
-                        <option value="Bed & Breakfasts">Bed & Breakfasts</option>
-                        <option value="Golfing">Golfing</option>
-                        
-                    </select>
-                    <div class="invalid-feedback">select category</div>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="price-group">
+                            <div class="price-symbol"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                            <div class="form-floating price-input-floating">
+                                <input type="number" name="price" class="form-control" id="price" placeholder="Price" required>
+                                <label for="price">Price per night</label>
+                                <div class="invalid-feedback px-2">Price should be valid</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <select name="category" class="form-select" id="category" required>
+                                <option value="" disabled selected hidden></option>
+                                <option value="Trending">Trending</option>
+                                <option value="Room">Room</option>
+                                <option value="Beach">Beach</option>
+                                <option value="Arctic">Arctic</option>
+                                <option value="Castle">Castle</option>
+                                <option value="Amazing pools">Amazing pools</option>
+                                <option value="Vineyard">Vineyard</option>
+                                <option value="Boats">Boats</option>
+                                <option value="Mountains">Mountains</option>
+                                <option value="Top cities">Top cities</option>
+                                <option value="Bed & Breakfasts">Bed & Breakfasts</option>
+                                <option value="Golfing">Golfing</option>
+                                <option value="Creative spaces">Creative spaces</option>
+                                <option value="Towers">Towers</option>
+                            </select>
+                            <label for="category">Category</label>
+                            <div class="invalid-feedback px-2">Please select a category</div>
+                        </div>
+                    </div>
                 </div>
-                <button class="btn btn-dark add-btn">Add</button>
+
+                <div class="row g-3 mb-2">
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" name="location" class="form-control" id="location" placeholder="Location" required>
+                            <label for="location">City / Location</label>
+                            <div class="invalid-feedback px-2">Location should be valid</div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-floating">
+                            <input type="text" name="country" class="form-control" id="country" placeholder="Country" required>
+                            <label for="country">Country</label>
+                            <div class="invalid-feedback px-2">Country name should be valid</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="btn-actions">
+                    <a href="/listings" class="btn-cancel">Cancel</a>
+                    <button type="submit" class="btn-save">Create Listing</button>
+                </div>
+
             </form>
         </div>
     </div>
-</body>
+</div>

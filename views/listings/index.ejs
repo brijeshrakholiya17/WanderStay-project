@@ -1,226 +1,722 @@
 <% layout("/layouts/boilerplate") %>
 
 <style>
-    .page1{
+    body, .page1, .first, .card {
+        background-color: #FAF9F6 !important;
+    }
+
+    /* --- STICKY FILTER WRAPPER FIX --- */
+    .filter-header-wrapper {
+        position: -webkit-sticky; 
+        position: sticky;
+        top: 5rem !important; 
+        z-index: 1040; 
+        padding-top: 0.8rem;
+        padding-bottom: 0.8rem;
+        background-color: #FAF9F6;
+        border-bottom: 1px solid transparent;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+        align-self: flex-start; 
+    }
+
+    /* --- Top Controls Container --- */
+    .top-controls-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 1rem;
         width: 100%;
+        height: 48px; 
+    }
+
+    .controls-group {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        height: 100%;
+        flex-shrink: 0;
+    }
+
+    /* --- Filter & Sort Buttons --- */
+    .filter-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.6rem;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        color: #222;
+        border-radius: 25px;
+        padding: 0 1.2rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        height: 100%; 
+        box-sizing: border-box;
+        text-decoration: none;
+    }
+    .filter-toggle-btn:hover, .filter-toggle-btn.active {
+        border-color: #222;
+        background-color: #f8f9fa;
+        color: #222;
+    }
+    .filter-toggle-btn i { font-size: 1rem; }
+
+    /* Clear Filters Quick Button */
+    .btn-clear-outside {
+        color: #717171;
+        background: transparent;
+        border: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: underline;
+        cursor: pointer;
+        padding: 0 0.5rem;
+        transition: color 0.2s ease;
+        display: none; 
+    }
+    .btn-clear-outside:hover { color: #fe424d; }
+
+    /* --- Floating Glassmorphism Dropdown Panel --- */
+    .filter-dropdown-container {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        z-index: 1050;
+    }
+
+    .glass-panel {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 16px 50px rgba(0,0,0,0.15);
+        border-radius: 1.5rem; 
+        padding: 2rem 2.5rem; 
+        margin-top: 0.8rem; 
+        position: relative;
+        max-height: calc(100vh - 110px); 
+        overflow-y: auto; 
+        scrollbar-width: none; 
+    }
+    .glass-panel::-webkit-scrollbar { display: none; }
+
+    .filter-section-title { font-size: 1.1rem; font-weight: 700; color: #222; margin-bottom: 0.2rem; }
+    .filter-subheading { font-size: 0.85rem; color: #717171; margin-bottom: 1rem; }
+    .filter-divider { border-top: 1px solid #ebebeb; margin: 1.5rem 0; }
+
+    /* --- Category Grid inside Modal --- */
+    .category-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+        gap: 0.8rem;
+    }
+
+    .category-btn {
         display: flex;
         flex-direction: column;
-    }
-    body {
-        background-color: #FAF9F6 !important;
-    }
-
-    .first {
-        margin: auto;
-        width: 100%;
-        background-color: #FAF9F6 !important;
-        z-index: 10;
-    }
-
-    #filters {
-        padding-top: 1.5rem;
-        display: flex;
-        flex-direction: row;
-        gap: 0.5rem;
-        align-items: baseline;
-        align-content: center;
-        width: max-content; 
-        max-width: 100%; 
-        overflow-x: auto;
-        white-space: nowrap;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-
-    #filters::-webkit-scrollbar {
-        display: none;
-    }
-
-    #filters::-webkit-scrollbar-thumb {
-        background: #ccc;
-        border-radius: 3px;
-    }
-
-    .filter {
-        min-width: 90px;
+        align-items: center;
+        justify-content: center;
+        gap: 0.4rem;
+        background: #fff;
+        border: 1px solid #ebebeb;
+        border-radius: 12px;
+        padding: 0.8rem 0.4rem;
         cursor: pointer;
-        opacity: 0.5;
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        color: #222;
         text-align: center;
-        transition: 0.45s ease;
-        border-bottom: 3px solid rgba(0, 0, 0, 0);
-        text-decoration: none;
-        color: black;
-        flex-shrink: 0; /* Prevent shrinking */
     }
+    .category-btn:hover { border-color: #222; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .category-btn.active {
+        border-color: #222; background: #f8f9fa; border-width: 2px;
+        padding: calc(0.8rem - 1px) calc(0.4rem - 1px); 
+    }
+    .category-btn i { font-size: 1.4rem; color: #555; transition: color 0.2s; }
+    .category-btn.active i { color: #222; }
+    .category-btn span { font-size: 0.8rem; font-weight: 600; }
 
-    .filter:hover {
-        opacity: 1;
-        border-bottom: 3px solid #dadada;
+    /* --- Dual Range Price Bar --- */
+    .price-slider-wrapper {
+        position: relative; width: 100%; height: 30px; margin: 0.5rem 0 1rem 0;
     }
+    .slider-track {
+        width: 100%; height: 5px; background-color: #ebebeb; position: absolute; margin: auto; top: 0; bottom: 0; border-radius: 5px;
+    }
+    .price-slider-wrapper input[type="range"] {
+        -webkit-appearance: none; -moz-appearance: none; appearance: none;
+        width: 100%; outline: none; position: absolute; margin: auto; top: 0; bottom: 0;
+        background-color: transparent; pointer-events: none;
+    }
+    .price-slider-wrapper input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; height: 22px; width: 22px; background-color: #fff;
+        border: 2px solid #222; border-radius: 50%; cursor: pointer; pointer-events: auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.1s ease;
+    }
+    .price-slider-wrapper input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
 
-    .nav2{
-        display: flex;
-        flex-direction: row;
-        justify-content: space-evenly;
-        align-items: baseline;
-        width: 100%;
-        height: 12vh;
+    /* Price Inputs */
+    .price-inputs { display: flex; align-items: center; gap: 1rem; max-width: 100%; }
+    .price-field {
+        position: relative; display: flex; flex-direction: column;
+        border: 1px solid #b0b0b0; border-radius: 10px; padding: 0.3rem 0.8rem; flex: 1;
+        background-color: rgba(255,255,255,0.7); transition: border-color 0.2s;
     }
+    .price-field span.label { font-size: 0.7rem; color: #717171; font-weight: 500;}
+    .price-field:focus-within { border-color: #222; border-width: 2px; padding: calc(0.3rem - 1px) calc(0.8rem - 1px); }
+    .price-field-inner { display: flex; align-items: center; margin-top: 0.1rem;}
+    .price-field-inner .currency { color: #222; font-weight: 500; margin-right: 0.3rem; }
+    .price-field-inner input { border: none; outline: none; width: 100%; font-size: 0.95rem; color: #222; background: transparent; }
+    .price-field-inner input::-webkit-outer-spin-button, .price-field-inner input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .price-separator { color: #666; font-weight: 400; font-size: 1.2rem; }
 
-    .filter div i{
-        font-size: 1.20rem;
+    /* Tax Toggle */
+    .tax-toggle {
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        border: 1px solid rgba(0,0,0,0.1); border-radius: 10px;
+        padding: 0.8rem 1rem; background-color: rgba(255,255,255,0.5);
+        cursor: pointer; transition: all 0.3s ease; height: 100%;
     }
+    .tax-toggle:hover { border-color: #222; background-color: rgba(255,255,255,0.9); }
+    .tax-text-col { display: flex; flex-direction: column; }
+    .tax-toggle label { font-size: 0.95rem; font-weight: 600; cursor: pointer; margin: 0; color: #222; }
+    .tax-subtext { font-size: 0.8rem; color: #717171; margin-top: 0.1rem; }
+    .form-switch .form-check-input { width: 2.8em; height: 1.4em; cursor: pointer; }
+    .form-switch .form-check-input:checked { background-color: #222; border-color: #222; }
 
-    .filter p{
-        font-weight: 500;
-        font-size: 0.80rem;
-    }
+    /* Modal Action Buttons */
+    .filter-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem;}
+    .btn-apply { background-color: #222; color: #fff; font-weight: 600; padding: 0.6rem 2rem; border-radius: 8px; border: none; transition: background 0.2s; font-size: 0.95rem;}
+    .btn-apply:hover { background-color: #000; color: #fff;}
+    .btn-clear { background-color: transparent; color: #222; font-weight: 600; text-decoration: underline; border: none; padding: 0.5rem 1rem; transition: color 0.2s; font-size: 0.9rem;}
+    .btn-clear:hover { color: #fe424d; }
 
-    .tax-toggle{
-        min-width: 14rem;
-        align-self: center;
-        border: 1px solid rgba(0, 0, 0, 0.241);
-        border-radius: 10px;
-        height: 3.25rem;
-        padding: 1rem;
-        font-size: 0.87rem;
-        font-weight: 500;
-        margin-left: 1.8rem;
-    }
-    .tax-toggle:hover{
-        background-color: #dadada60;
-        border: 1px solid rgb(0, 0, 0);
-    }
+    /* --- Listings Cards --- */
+    .listings { margin-top: 0.5rem; transition: opacity 0.3s ease;}
+    .listing-card { border: none !important; border-radius: 1rem; background: transparent; text-decoration: none; color: inherit; opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+    .img-container { position: relative; border-radius: 1rem; overflow: hidden; aspect-ratio: 1/1; }
+    .card-img-top { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .listing-card:hover .card-img-top { transform: scale(1.05); }
+    .heart-icon { position: absolute; top: 15px; right: 15px; color: rgba(0,0,0,0.5); font-size: 1.5rem; z-index: 5; transition: all 0.2s; cursor: pointer; }
+    .heart-icon:hover { color: #fe424d; transform: scale(1.1); }
+    .heart-icon.favorited { color: #fe424d; text-shadow: 0 0 10px rgba(254,66,77,0.5); }
+    .card-body { padding: 0.8rem 0 !important; }
+    .card-title { font-weight: 600; font-size: 1rem; margin-bottom: 0.2rem; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-price-container { margin-top: 0.4rem; font-size: 0.95rem; color: #222; }
+    .price-val { font-weight: 600; }
+    #card-anchor { text-decoration: none !important; }
 
-    .tax-info{
-        display: none;
+    @keyframes fadeInUp { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
+
+    /* Empty State */
+    .empty-state { text-align: center; padding: 4rem 1rem; display: none; }
+    .empty-state i { font-size: 3.5rem; color: #b0b0b0; margin-bottom: 1rem;}
+    .empty-state h3 { font-weight: 700; color: #222;}
+
+    @media (max-width: 991px) {
+        .top-controls-container { gap: 0.6rem; }
+        .filter-toggle-btn { padding: 0 1rem; font-size: 0.85rem; }
+        .glass-panel { padding: 1.5rem; }
     }
     
-    .card{
-        background-color: #FAF9F6 !important;
+    @media (max-width: 576px) {
+        .glass-panel { padding: 1.2rem 1rem; max-height: calc(100vh - 90px); }
+        .category-grid { display: flex; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: none; }
+        .category-grid::-webkit-scrollbar { display: none; }
+        .category-btn { min-width: 80px; flex-shrink: 0; padding: 0.5rem 0.2rem; }
+        .category-btn i { font-size: 1.1rem; }
+        .category-btn span { font-size: 0.75rem; }
+        .filter-section-title { font-size: 1rem; }
+        .filter-subheading { font-size: 0.75rem; margin-bottom: 0.8rem; }
+        .filter-divider { margin: 1rem 0; }
+        .price-inputs { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+        .price-separator { display: none; }
+        .tax-toggle { padding: 0.6rem 0.8rem; }
+        .tax-toggle label { font-size: 0.85rem; }
+        .tax-subtext { font-size: 0.75rem; }
+        .filter-actions { flex-direction: column-reverse; gap: 0.8rem; margin-top: 1rem; padding-top: 1rem; }
+        .btn-apply { width: 100%; padding: 0.7rem; }
+        #sortBtnText { display: none; } 
     }
 </style>
 
-<body>
-    <div class="page1">
-        <div class="first mb-2" style="position: sticky;top: 6rem;">
-            <div class="nav2 border-bottom">
-                <div id="filters">
-                    <a href="/listings/?value=Trending" class="filter">
-                        <div><i class="fa-solid fa-fire"></i></div>
-                        <p>Trending</p>
-                    </a>
-                    
-                    <a href="/listings/?value=Room" class="filter">
-                        <div><i class="fa-solid fa-bed"></i></div>
-                        <p>Room</p>
-                    </a>
-                    <a href="/listings/?value=Beach" class="filter">
-                        <div><i class="fa-solid fa-umbrella-beach"></i></div>
-                        <p>Beach</p>
-                    </a>
-                    <a href="/listings/?value=Arctic" class="filter">
-                        <div><i class="fa-solid fa-snowflake"></i></div>
-                        <p>Arctic</p>
-                    </a>
-                    <a href="/listings/?value=Castle" class="filter">
-                        <div><i class="fa-solid fa-chess-rook"></i></div>
-                        <p>Castle</p>
-                    </a>
-                    <a href="/listings/?value=Amazing pools" class="filter">
-                        <div><i class="fa-solid fa-water-ladder"></i></div>
-                        <p>Amazing pools</p>
-                    </a>
-                    <a href="/listings/?value=Vineyard" class="filter">
-                        <div><i class="fa-solid fa-wine-glass"></i></div>
-                        <p>Vineyard</p>
-                    </a>
-                    <a href="/listings/?value=Boats" class="filter">
-                        <div><i class="fa-solid fa-sailboat"></i></div>
-                        <p>Boats</p>
-                    </a>
-                    <a href="/listings/?value=Mountains" class="filter">
-                        <div><i class="fa-solid fa-mountain-sun"></i></div>
-                        <p>Mountains</p>
-                    </a>
-                    <a href="/listings/?value=Top cities" class="filter">
-                        <div><i class="fa-solid fa-mountain-city"></i></div>
-                        <p>Top cities</p>
-                    </a>
-                    <a href="/listings/?value=Bed & Breakfasts" class="filter">
-                        <div><i class="fa-solid fa-mug-hot"></i></div>
-                        <p>Bed & Breakfasts</p>
-                    </a>
-                    <a href="/listings/?value=Golfing" class="filter">
-                        <div><i class="fa-solid fa-golf-ball-tee"></i></div>
-                        <p>Golfing</p>
-                    </a>
-                    <a href="/listings/?value=Creative spaces" class="filter">
-                        <div><i class="fa-solid fa-palette"></i></div>
-                        <p>Creative spaces</p>
-                    </a>
-                    <a href="/listings/?value=Towers" class="filter">
-                        <div><i class="fa-solid fa-tower-observation"></i></div>
-                        <p>Towers</p>
-                    </a>
-            </div>
-            <div class="tax-toggle">
-                <div class="form-check-reverse form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Display total after taxes</label>
+<div class="page1 container position-relative">
+    
+    <div class="filter-header-wrapper w-100">
+        <div class="top-controls-container">
+            
+            <div class="controls-group w-100">
+                
+                <div class="dropdown h-100">
+                    <button class="filter-toggle-btn h-100" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa-solid fa-arrow-down-short-wide"></i> <span id="sortBtnText">Recommended</span>
+                    </button>
+                    <ul class="dropdown-menu custom-dropdown-menu">
+                        <li><a class="dropdown-item sort-item fw-bold" href="#" data-sort="recommended">Recommended</a></li>
+                        <li><a class="dropdown-item sort-item" href="#" data-sort="price-asc">Price: Low to high</a></li>
+                        <li><a class="dropdown-item sort-item" href="#" data-sort="price-desc">Price: High to low</a></li>
+                        <li><a class="dropdown-item sort-item" href="#" data-sort="name-asc">Name: A to Z</a></li>
+                    </ul>
                 </div>
-            </div>
+
+                <button class="filter-toggle-btn h-100" type="button" data-bs-toggle="collapse" data-bs-target="#floatingFilterPanel" aria-expanded="false">
+                    <i class="fa-solid fa-sliders"></i> <span>Filters</span>
+                </button>
+
+                <button class="btn-clear-outside h-100 ms-auto" id="quickClearBtn">Clear filters</button>
+
             </div>
         </div>
-    
-        <div class="listings">
-            <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1" >
-    
-                <%for(data of listing){%>
-                    <a href="/listings/<%=data._id%>" id="card-anchor">
-                        <div class="card col listing-card">
-                            <img src="<%=data.image.url%>" class="card-img-top" alt="listing_img" style="height: 20rem;">
-                            <div class="card-img-overlay"></div>
-                            <div class="card-body">
-                                <p class="card-text">
-                                    <b><%=data.title%></b> <br>
-                                    <i class="fa-solid fa-indian-rupee-sign"></i> 
-                                    <span class="price" data-original="<%=data.price.toLocaleString()%>" data-tax="<%= (data.price * 0.17 + data.price).toFixed(2) %>">
-                                        <%=data.price.toLocaleString()%>
-                                    </span>/night
-                                    <!-- <i class="fa-solid fa-indian-rupee-sign"></i> <%=data.price.toLocaleString()%>/night<i class="tax-info">&nbsp; &nbsp;<%=data.price * 0.17 + data.price%></i> -->
-                                </p>
-                                
+
+        <div class="filter-dropdown-container">
+            <div class="collapse" id="floatingFilterPanel">
+                <div class="glass-panel shadow-lg">
+                    
+                    <div>
+                        <h6 class="filter-section-title">Property Type</h6>
+                        <p class="filter-subheading">Choose the vibe of your stay</p>
+                        
+                        <div class="category-grid">
+                            <div class="category-btn" data-cat="Trending">
+                                <i class="fa-solid fa-fire"></i><span>Trending</span>
+                            </div>
+                            <div class="category-btn" data-cat="Room">
+                                <i class="fa-solid fa-bed"></i><span>Room</span>
+                            </div>
+                            <div class="category-btn" data-cat="Beach">
+                                <i class="fa-solid fa-umbrella-beach"></i><span>Beach</span>
+                            </div>
+                            <div class="category-btn" data-cat="Arctic">
+                                <i class="fa-solid fa-snowflake"></i><span>Arctic</span>
+                            </div>
+                            <div class="category-btn" data-cat="Castle">
+                                <i class="fa-solid fa-chess-rook"></i><span>Castle</span>
+                            </div>
+                            <div class="category-btn" data-cat="Amazing pools">
+                                <i class="fa-solid fa-water-ladder"></i><span>Pools</span>
+                            </div>
+                            <div class="category-btn" data-cat="Vineyard">
+                                <i class="fa-solid fa-wine-glass"></i><span>Vineyard</span>
+                            </div>
+                            <div class="category-btn" data-cat="Boats">
+                                <i class="fa-solid fa-sailboat"></i><span>Boats</span>
+                            </div>
+                            <div class="category-btn" data-cat="Mountains">
+                                <i class="fa-solid fa-mountain-sun"></i><span>Mountains</span>
+                            </div>
+                            <div class="category-btn" data-cat="Top cities">
+                                <i class="fa-solid fa-mountain-city"></i><span>Cities</span>
+                            </div>
+                            <div class="category-btn" data-cat="Bed & Breakfasts">
+                                <i class="fa-solid fa-mug-hot"></i><span>B&B</span>
+                            </div>
+                            <div class="category-btn" data-cat="Golfing">
+                                <i class="fa-solid fa-golf-ball-tee"></i><span>Golfing</span>
+                            </div>
+                            <div class="category-btn" data-cat="Creative spaces">
+                                <i class="fa-solid fa-palette"></i><span>Creative</span>
+                            </div>
+                            <div class="category-btn" data-cat="Towers">
+                                <i class="fa-solid fa-tower-observation"></i><span>Towers</span>
                             </div>
                         </div>
-                    </a>
-                <%}%>
-    
+                    </div>
+
+                    <div class="filter-divider"></div>
+
+                    <div class="row g-4 align-items-center">
+                        <div class="col-md-7">
+                            <h6 class="filter-section-title">Price range</h6>
+                            <p class="filter-subheading">Nightly prices before fees and taxes</p>
+                            
+                            <div class="price-slider-wrapper">
+                                <div class="slider-track" id="sliderTrack"></div>
+                                <input type="range" min="0" max="50000" value="0" id="sliderMin">
+                                <input type="range" min="0" max="50000" value="50000" id="sliderMax">
+                            </div>
+
+                            <div class="price-inputs">
+                                <div class="price-field">
+                                    <span class="label">Minimum</span>
+                                    <div class="price-field-inner">
+                                        <span class="currency">₹</span>
+                                        <input type="number" id="minPriceInput" value="0">
+                                    </div>
+                                </div>
+                                <span class="price-separator"><i class="fa-solid fa-minus"></i></span>
+                                <div class="price-field">
+                                    <span class="label">Maximum</span>
+                                    <div class="price-field-inner">
+                                        <span class="currency">₹</span>
+                                        <input type="number" id="maxPriceInput" value="50000">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <h6 class="filter-section-title">Taxes</h6>
+                            <p class="filter-subheading">Control how prices are displayed</p>
+                            
+                            <div class="tax-toggle" onclick="document.getElementById('taxSwitch').click()">
+                                <div class="tax-text-col">
+                                    <label for="taxSwitch" id="taxLabel">Total after taxes</label>
+                                    <span class="tax-subtext">Includes all fees</span>
+                                </div>
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input m-0" type="checkbox" role="switch" id="taxSwitch" onclick="event.stopPropagation()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button class="btn-clear" id="modalClearBtn" type="button">Clear all</button>
+                        <button class="btn-apply" id="applyFiltersBtn" type="button" data-bs-toggle="collapse" data-bs-target="#floatingFilterPanel">Show properties</button>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
-</body>
+
+    <div class="empty-state" id="emptyState">
+        <i class="fa-solid fa-magnifying-glass-location"></i>
+        <h3>No exact matches</h3>
+        <p class="text-muted">Try changing or removing some of your filters.</p>
+        <button class="btn btn-outline-dark mt-3 px-4 py-2 fw-bold rounded-pill" id="emptyClearBtn">Clear all filters</button>
+    </div>
+
+    <div class="listings pt-2">
+        <div class="row row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-sm-2 row-cols-1 g-4" id="listingsRow">
+            <% let delay = 0; %>
+            <% for(data of listing){ %>
+                <div class="col listing-col" data-listing-id="<%= data._id %>" data-price="<%= data.price %>" data-title="<%= data.title.toLowerCase() %>" data-category="<%= data.category %>">
+                    <a href="/listings/<%=data._id%>" id="card-anchor">
+                        <div class="card listing-card" style="animation-delay: <%= delay %>s;">
+                            <div class="img-container">
+                                <img src="<%=data.image.url%>" class="card-img-top" alt="listing_img">
+                                <i class="fa-solid fa-heart heart-icon <%= typeof wishlistIds !== 'undefined' && wishlistIds && wishlistIds.includes(data._id.toString()) ? 'favorited' : '' %>"></i>
+                            </div>
+                            <div class="card-body">
+                                <div class="card-title"><%=data.title%></div>
+                                <div class="text-muted" style="font-size: 0.9rem;"><%=data.category%></div>
+                                <div class="card-price-container">
+                                    <i class="fa-solid fa-indian-rupee-sign" style="font-size: 0.8rem;"></i> 
+                                    <span class="price-val" 
+                                          data-original="<%=data.price.toLocaleString()%>" 
+                                          data-tax="<%= (data.price + (data.price * 0.17)).toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %>">
+                                        <%=data.price.toLocaleString()%>
+                                    </span>
+                                    <span style="font-weight: 400;">/night</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <% delay += 0.05; %>
+            <% } %>
+        </div>
+    </div>
+</div>
 
 <script>
-    document.getElementById("flexSwitchCheckDefault").addEventListener("change", function() {
-        const priceElements = document.querySelectorAll(".price"); // Select all price elements in the cards
-
-        priceElements.forEach(priceElement => {
-            if (this.checked) {
-                priceElement.textContent = priceElement.getAttribute("data-tax"); // Show price with tax
-            } else {
-                priceElement.textContent = priceElement.getAttribute("data-original"); // Show original price
-            }
-        });
-    });
-
     document.addEventListener("DOMContentLoaded", function () {
-    const filtersContainer = document.getElementById("filters");
+        
+        // --- 1. CORE VARIABLES ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentSort = urlParams.get('sort') || 'recommended';
+        let currentCategory = urlParams.get('value') || null; 
+        let tempCategory = currentCategory; 
+        
+        const listingsRow = document.getElementById("listingsRow");
+        const allCards = Array.from(document.querySelectorAll(".listing-col"));
+        const emptyState = document.getElementById("emptyState");
+        const quickClearBtn = document.getElementById("quickClearBtn");
 
-    filtersContainer.addEventListener("wheel", function (event) {
-        event.preventDefault(); // Prevent vertical scrolling
-        filtersContainer.scrollLeft += event.deltaY; // Scroll horizontally
+        // Grab the search input from the EJS navbar
+        const searchInput = document.querySelector('input[name="search"]');
+        const searchForm = searchInput ? searchInput.closest('form') : null;
+        let searchQuery = urlParams.get('search') || (searchInput ? searchInput.value.toLowerCase() : "");
+
+        // Dynamically find max price
+        let maxListingPrice = 0;
+        allCards.forEach(card => {
+            let p = parseFloat(card.getAttribute("data-price"));
+            if(p > maxListingPrice) maxListingPrice = p;
+        });
+        maxListingPrice = Math.ceil(maxListingPrice / 5000) * 5000; 
+        if(maxListingPrice === 0) maxListingPrice = 50000;
+
+        let activeMinPrice = 0;
+        let activeMaxPrice = maxListingPrice;
+
+
+        // --- 2. REAL-TIME SEARCH INTERCEPTION ---
+        // Stop form from reloading the page
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+        }
+
+        // Listen for typing events
+        if (searchInput) {
+            // Fill input with URL param if exists
+            if (searchQuery) searchInput.value = searchQuery;
+
+            searchInput.addEventListener('input', function(e) {
+                searchQuery = e.target.value.toLowerCase();
+                
+                // Update URL silently to allow sharing links
+                const url = new URL(window.location);
+                if(searchQuery) url.searchParams.set('search', searchQuery);
+                else url.searchParams.delete('search');
+                window.history.replaceState({}, '', url);
+
+                executeFilterAndSort(); // Trigger Real-time engine
+            });
+        }
+
+
+        // --- 3. CATEGORY BUTTONS ---
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        
+        function updateCategoryUI(catName) {
+            categoryBtns.forEach(btn => btn.classList.remove('active'));
+            if(catName) {
+                const activeBtn = document.querySelector(`.category-btn[data-cat="${catName}"]`);
+                if(activeBtn) activeBtn.classList.add('active');
+            }
+        }
+
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.classList.contains('active')) {
+                    this.classList.remove('active');
+                    tempCategory = null;
+                } else {
+                    categoryBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    tempCategory = this.getAttribute('data-cat');
+                }
+            });
+        });
+
+        updateCategoryUI(currentCategory);
+
+        // --- 4. DUAL RANGE SLIDER ---
+        const sliderMin = document.getElementById("sliderMin");
+        const sliderMax = document.getElementById("sliderMax");
+        const minPriceInput = document.getElementById("minPriceInput");
+        const maxPriceInput = document.getElementById("maxPriceInput");
+        const sliderTrack = document.getElementById("sliderTrack");
+        const minGap = 500; 
+
+        sliderMin.max = maxListingPrice; sliderMax.max = maxListingPrice;
+        sliderMax.value = maxListingPrice; maxPriceInput.value = maxListingPrice;
+
+        function updateSliderTrack() {
+            let percent1 = (sliderMin.value / sliderMax.max) * 100;
+            let percent2 = (sliderMax.value / sliderMax.max) * 100;
+            sliderTrack.style.background = `linear-gradient(to right, #ebebeb ${percent1}%, #222 ${percent1}%, #222 ${percent2}%, #ebebeb ${percent2}%)`;
+        }
+
+        sliderMin.addEventListener("input", function() {
+            if (parseInt(sliderMax.value) - parseInt(sliderMin.value) <= minGap) sliderMin.value = parseInt(sliderMax.value) - minGap;
+            minPriceInput.value = sliderMin.value; updateSliderTrack();
+        });
+        
+        sliderMax.addEventListener("input", function() {
+            if (parseInt(sliderMax.value) - parseInt(sliderMin.value) <= minGap) sliderMax.value = parseInt(sliderMin.value) + minGap;
+            maxPriceInput.value = sliderMax.value; updateSliderTrack();
+        });
+
+        minPriceInput.addEventListener("change", function() {
+            let val = parseInt(minPriceInput.value);
+            if(val < 0) val = 0;
+            if(val > parseInt(sliderMax.value) - minGap) val = parseInt(sliderMax.value) - minGap;
+            minPriceInput.value = val; sliderMin.value = val; updateSliderTrack();
+        });
+
+        maxPriceInput.addEventListener("change", function() {
+            let val = parseInt(maxPriceInput.value);
+            if(val > maxListingPrice) val = maxListingPrice;
+            if(val < parseInt(sliderMin.value) + minGap) val = parseInt(sliderMin.value) + minGap;
+            maxPriceInput.value = val; sliderMax.value = val; updateSliderTrack();
+        });
+        updateSliderTrack();
+
+        // --- 5. SORTING ---
+        const sortOptions = document.querySelectorAll(".sort-item");
+        const sortBtnText = document.getElementById("sortBtnText");
+        const sortTextMap = { 'recommended': 'Recommended', 'price-asc': 'Price: Low to high', 'price-desc': 'Price: High to low', 'name-asc': 'Name: A to Z' };
+
+        function updateSortUI(sortValue) {
+            sortBtnText.innerText = sortTextMap[sortValue];
+            sortOptions.forEach(opt => opt.classList.remove("fw-bold"));
+            document.querySelector(`.sort-item[data-sort="${sortValue}"]`)?.classList.add("fw-bold");
+        }
+
+        sortOptions.forEach(option => {
+            option.addEventListener("click", function(e) {
+                e.preventDefault();
+                currentSort = this.getAttribute("data-sort");
+                updateSortUI(currentSort);
+                
+                const url = new URL(window.location);
+                url.searchParams.set('sort', currentSort);
+                window.history.replaceState({}, '', url);
+
+                executeFilterAndSort();
+            });
+        });
+        updateSortUI(currentSort);
+
+        // --- 6. MASTER ENGINE (Now with Real-time Search) ---
+        function executeFilterAndSort() {
+            let visibleCount = 0;
+
+            allCards.forEach(card => {
+                const cardPrice = parseFloat(card.getAttribute("data-price"));
+                const cardCat = card.getAttribute("data-category");
+                const cardTitle = card.getAttribute("data-title");
+
+                let priceMatch = (cardPrice >= activeMinPrice && cardPrice <= activeMaxPrice);
+                let catMatch = currentCategory ? (cardCat === currentCategory) : true;
+                let searchMatch = true;
+
+                // REAL TIME SEARCH MATCH: Checks Title or Category
+                if (searchQuery && searchQuery.trim() !== "") {
+                    searchMatch = cardTitle.includes(searchQuery) || cardCat.toLowerCase().includes(searchQuery);
+                }
+
+                if (priceMatch && catMatch && searchMatch) {
+                    card.style.display = "";
+                    card.classList.add("active-card"); 
+                    visibleCount++;
+                } else {
+                    card.style.display = "none";
+                    card.classList.remove("active-card");
+                }
+            });
+
+            let visibleCards = Array.from(document.querySelectorAll(".active-card"));
+            
+            visibleCards.sort((a, b) => {
+                if (currentSort === 'price-asc') return parseFloat(a.getAttribute("data-price")) - parseFloat(b.getAttribute("data-price"));
+                if (currentSort === 'price-desc') return parseFloat(b.getAttribute("data-price")) - parseFloat(a.getAttribute("data-price"));
+                if (currentSort === 'name-asc') return a.getAttribute("data-title").localeCompare(b.getAttribute("data-title"));
+                return 0; 
+            });
+
+            listingsRow.innerHTML = "";
+            visibleCards.forEach(card => listingsRow.appendChild(card));
+            allCards.forEach(card => { if(!card.classList.contains("active-card")) listingsRow.appendChild(card); });
+
+            if(visibleCount === 0) {
+                emptyState.style.display = "block"; listingsRow.style.display = "none";
+            } else {
+                emptyState.style.display = "none"; listingsRow.style.display = "flex";
+            }
+
+            const isTaxActive = document.getElementById("taxSwitch").checked;
+            if(activeMinPrice > 0 || activeMaxPrice < maxListingPrice || currentCategory || isTaxActive || searchQuery) {
+                quickClearBtn.style.display = "inline-flex";
+            } else {
+                quickClearBtn.style.display = "none";
+            }
+        }
+
+        // --- 7. TRIGGERING FILTERS ---
+        document.getElementById("applyFiltersBtn").addEventListener("click", function() {
+            activeMinPrice = parseInt(minPriceInput.value);
+            activeMaxPrice = parseInt(maxPriceInput.value);
+            currentCategory = tempCategory; 
+            
+            const url = new URL(window.location);
+            if(currentCategory) url.searchParams.set('value', currentCategory);
+            else url.searchParams.delete('value');
+            window.history.replaceState({}, '', url);
+
+            executeFilterAndSort();
+        });
+
+        // --- 8. CLEAR ALL FILTERS (Including Search Bar) ---
+        function clearAllFilters() {
+            if(document.getElementById("taxSwitch").checked) document.getElementById("taxSwitch").click();
+
+            sliderMin.value = 0; sliderMax.value = maxListingPrice;
+            minPriceInput.value = 0; maxPriceInput.value = maxListingPrice;
+            updateSliderTrack();
+            activeMinPrice = 0; activeMaxPrice = maxListingPrice;
+
+            currentCategory = null; tempCategory = null;
+            updateCategoryUI(null);
+
+            // WIPE SEARCH BAR
+            if (searchInput) searchInput.value = "";
+            searchQuery = "";
+
+            const url = new URL(window.location);
+            url.searchParams.delete('value');
+            url.searchParams.delete('search');
+            window.history.replaceState({}, '', url);
+
+            executeFilterAndSort(); 
+        }
+
+        document.getElementById("modalClearBtn").addEventListener("click", clearAllFilters);
+        document.getElementById("quickClearBtn").addEventListener("click", clearAllFilters);
+        document.getElementById("emptyClearBtn").addEventListener("click", clearAllFilters);
+
+        // --- 9. TAX TOGGLE ---
+        const taxSwitch = document.getElementById("taxSwitch");
+        const taxLabel = document.getElementById("taxLabel");
+        const priceElements = document.querySelectorAll(".price-val");
+
+        taxSwitch.addEventListener("change", function() {
+            if (this.checked) {
+                taxLabel.textContent = "Total before taxes"; 
+                priceElements.forEach(el => {
+                    el.style.opacity = 0;
+                    setTimeout(() => { el.textContent = el.getAttribute("data-tax"); el.style.opacity = 1; }, 150);
+                });
+            } else {
+                taxLabel.textContent = "Total after taxes";
+                priceElements.forEach(el => {
+                    el.style.opacity = 0;
+                    setTimeout(() => { el.textContent = el.getAttribute("data-original"); el.style.opacity = 1; }, 150);
+                });
+            }
+            executeFilterAndSort(); 
+        });
+        priceElements.forEach(el => el.style.transition = "opacity 0.15s ease");
+
+        // Wishlist functionality
+        const heartIcons = document.querySelectorAll(".heart-icon");
+        heartIcons.forEach(icon => {
+            icon.addEventListener("click", async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const listingCol = icon.closest('.listing-col');
+                const listingId = listingCol?.dataset.listingId;
+                if (!listingId) return;
+
+                try {
+                    const res = await fetch(`/listings/${listingId}/wishlist`, { method: 'POST' });
+                    if (res.status === 401) { window.location.href = '/login'; return; }
+                    if (!res.ok) { const data = await res.json(); alert(data.message || 'Could not update wishlist'); return; }
+                    const data = await res.json();
+                    if (data.favorited) icon.classList.add('favorited');
+                    else icon.classList.remove('favorited');
+                } catch (err) { console.error(err); }
+            });
+        });
+
+        // Initialize on load
+        executeFilterAndSort();
     });
-});
-
 </script>

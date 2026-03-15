@@ -1,4 +1,5 @@
 const Listing = require('../models/listing.js');
+const User = require('../models/user.js');
 const { v4: uuidv4 } = require('uuid');
 const ExpressError = require("../utils/ExpressError.js");
 
@@ -16,7 +17,8 @@ module.exports.index = async (req,res) => {
             res.redirect("/listings");
         }
         else{
-            res.render("listings/index.ejs" , {listing});
+            const wishlistIds = req.user ? req.user.wishlist?.map(id => id.toString()) : [];
+            res.render("listings/index.ejs" , {listing, wishlistIds});
         }
     }
     else if(filter){
@@ -26,14 +28,16 @@ module.exports.index = async (req,res) => {
             res.redirect("/listings");
         }
         else{
-            res.render("listings/index.ejs" , {listing});
+            const wishlistIds = req.user ? req.user.wishlist?.map(id => id.toString()) : [];
+            res.render("listings/index.ejs" , {listing, wishlistIds});
         }
         
         
     }
     else{
         let listing =  await Listing.find({});
-        res.render("listings/index.ejs" , {listing});
+        const wishlistIds = req.user ? req.user.wishlist?.map(id => id.toString()) : [];
+        res.render("listings/index.ejs" , {listing, wishlistIds});
     }
     
 }
@@ -118,3 +122,28 @@ module.exports.destroyListing = async (req,res) => {
     console.log(deletedlist)
     res.redirect('/listings');
 }
+
+module.exports.toggleWishlist = async (req, res) => {
+    const { id } = req.params;
+    const listing = await Listing.findById(id);
+    if (!listing) {
+        return res.status(404).json({ status: 'error', message: 'Listing not found' });
+    }
+
+    const user = req.user;
+    const exists = user.wishlist.some(listingId => listingId.toString() === id);
+    if (exists) {
+        user.wishlist = user.wishlist.filter(listingId => listingId.toString() !== id);
+    } else {
+        user.wishlist.push(id);
+    }
+    await user.save();
+
+    return res.json({ status: 'success', wishlist: user.wishlist.map(id => id.toString()), favorited: !exists });
+};
+
+module.exports.showWishlist = async (req, res) => {
+    const user = await User.findById(req.user._id).populate('wishlist');
+    const wishlistListings = user.wishlist || [];
+    res.render('listings/wishlist.ejs', { wishlistListings });
+};

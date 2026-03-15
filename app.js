@@ -45,7 +45,12 @@ main()
     })
 
 async function main(){
-    await mongoose.connect(db_url);
+    try{
+        await mongoose.connect(db_url);
+        console.log("Connected to MongoDB Atlas");
+    }catch(err){
+        console.error("MongoDB connection failed:", err.message);
+    }
 }
 
 const store = MongoStore.create({
@@ -112,7 +117,19 @@ app.use((err,req,res,next) => {
     res.status(statusCode).render("error.ejs",{message});
 })
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-    console.log(`server is listening on port ${PORT}`);
-})
+async function startServer(){
+    try{
+        await mongoose.connect(db_url);
+        console.log("MongoDB connected");
+
+        const PORT = process.env.PORT || 8080;
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+
+    }catch(err){
+        console.log("Database connection failed:", err);
+    }
+}
+
+startServer();

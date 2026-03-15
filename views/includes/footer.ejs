@@ -1,18 +1,205 @@
-<footer>
-    <div class="left">
-        <a href="">2024 Wanderlust,Inc.</a>&#183;
-        <a href="">Privacy</a>&#183;
-        <a href="">Terms</a>&#183;
-        <a href="">Sitemap</a>&#183;
-        <a href="">Company details</a>
-    </div>
+<style>
+    /* --- Premium Footer Container --- */
+    .premium-footer {
+        background-color: #ffffff;
+        border-top: 1px solid #ebebeb;
+        padding: 1.2rem 0;
+        margin-top: auto; /* Ensures it stays at the bottom if body is flex */
+        font-family: "Plus Jakarta Sans", sans-serif;
+    }
 
-    <div class="right">
-        <div><a href=""><i class="fa-solid fa-globe"></i> English(IN)</a></div>
-        <div><a href=""><i class="fa-solid fa-indian-rupee-sign"></i> INR</a></div>
-        <a href="https://www.facebook.com/airbnb/"><i class="fa-brands fa-square-facebook"></i></a>
-        <a href="https://x.com/airbnb"><i class="fa-brands fa-square-twitter"></i></a>
-        <a href="https://www.instagram.com/airbnb/?hl=en"><i class="fa-brands fa-square-instagram"></i></a>
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    /* --- Left Side: Copyright & Links --- */
+    .footer-left {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        font-size: 0.85rem;
+        color: #222222;
+    }
+
+    .footer-left span {
+        font-weight: 400;
+    }
+
+    .footer-left a {
+        color: #222222;
+        text-decoration: none;
+        position: relative;
+        padding-bottom: 2px;
+        font-weight: 400;
+    }
+
+    /* Buttery-smooth expanding underline on hover */
+    .footer-left a::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        bottom: 0;
+        left: 0;
+        background-color: #222222;
+        transform: scaleX(0);
+        transform-origin: right;
+        transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .footer-left a:hover::after {
+        transform: scaleX(1);
+        transform-origin: left;
+    }
+
+    .dot-separator {
+        font-size: 1.2rem;
+        line-height: 0;
+        position: relative;
+        top: 2px;
+    }
+
+    /* --- Right Side: Settings & Socials --- */
+    .footer-right {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+
+    .footer-settings {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Pill-shaped setting buttons */
+    .setting-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: #222222;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        padding: 0.5rem 0.8rem;
+        border-radius: 20px;
+        transition: background-color 0.2s ease;
+    }
+
+    .setting-btn:hover {
+        background-color: #f8f9fa;
+    }
+
+    .footer-socials {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    /* Floating Social Icons with Lift Animation */
+    .social-icon {
+        color: #222222;
+        font-size: 1.1rem;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .social-icon:hover {
+        background-color: #f8f9fa;
+        color: #fe424d; /* Pops with your theme's red */
+        transform: translateY(-4px) scale(1.05); /* Lifts up and scales slightly */
+        box-shadow: 0 6px 14px rgba(0,0,0,0.08); /* Soft drop shadow */
+    }
+
+    /* --- 100% Mobile & Tablet Responsiveness --- */
+    @media (max-width: 991px) {
+        /* On Tablets and smaller, stack the right side on top of the left side */
+        .footer-content {
+            flex-direction: column-reverse;
+            gap: 1.5rem;
+        }
         
+        .footer-left {
+            justify-content: center;
+            text-align: center;
+            padding-top: 1.2rem;
+            border-top: 1px solid #ebebeb;
+            width: 100%;
+        }
+        
+        .footer-right {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+
+    @media (max-width: 576px) {
+        /* On strict mobile, stack everything beautifully centered */
+        .footer-right {
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        
+        .footer-left {
+            flex-direction: column; /* Stack the text links vertically */
+            gap: 0.8rem;
+        }
+        
+        /* Hide dots on mobile since elements are stacked */
+        .dot-separator {
+            display: none; 
+        }
+    }
+</style>
+
+<footer class="premium-footer">
+    <div class="container-fluid px-3 px-md-4">
+        <div class="footer-content">
+            
+            <div class="footer-left">
+                <span>© 2026 Wanderlust, Inc.</span>
+                <span class="dot-separator">·</span>
+                <a href="#">Privacy</a>
+                <span class="dot-separator">·</span>
+                <a href="#">Terms</a>
+                <span class="dot-separator">·</span>
+                <a href="#">Sitemap</a>
+                <span class="dot-separator">·</span>
+                <a href="#">Company details</a>
+            </div>
+
+            <div class="footer-right">
+                
+                <div class="footer-settings">
+                    <a href="#" class="setting-btn"><i class="fa-solid fa-globe"></i> English (IN)</a>
+                    <a href="#" class="setting-btn"><i class="fa-solid fa-indian-rupee-sign"></i> INR</a>
+                </div>
+
+                <div class="footer-socials">
+                    <a href="https://www.facebook.com/airbnb/" target="_blank" class="social-icon">
+                        <i class="fa-brands fa-facebook-f"></i>
+                    </a>
+                    <a href="https://x.com/airbnb" target="_blank" class="social-icon">
+                        <i class="fa-brands fa-x-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/airbnb/?hl=en" target="_blank" class="social-icon">
+                        <i class="fa-brands fa-instagram"></i>
+                    </a>
+                </div>
+
+            </div>
+            
+        </div>
     </div>
 </footer>

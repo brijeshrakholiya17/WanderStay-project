@@ -14,12 +14,12 @@ body{
 
 /* header */
 .navbar{
-    height: 6rem;
+    height: 5rem;
     background-color: white;
 }
 
 .navbar-nav{
-    max-height: 6rem;
+    max-height: 5rem;
     overflow: hidden;
 }
 

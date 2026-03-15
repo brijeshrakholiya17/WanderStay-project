@@ -1,55 +1,308 @@
 <% var currUser = typeof currUser !== 'undefined' ? currUser : null; %>
 
-<nav class="navbar navbar-expand-md bg-body-light border-bottom sticky-top">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="/listings"><i id="compass" class="fa-regular fa-compass " ></i></a>
-      <button class="navbar-toggler " type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse " id="navbarNavAltMarkup">
-        <div class="navbar-nav menu">
-          <a class="nav-link nav-home" href="/listings" >Home</a>
+<style>
+    /* --- Ultra-Slim Navbar Base --- */
+    .premium-navbar {
+        background-color: transparent;
+        transition: padding 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        padding: 0.25rem 0;
+        z-index: 1050;
+    }
 
-          <!-- Custom Language Selector -->
-          <div class="language-container">
-            <span class="language-label">🌐 Language: </span>
-            <div id="google_translate_element" class="custom-translate"></div>
-          </div>
-        </div>
+    .premium-navbar.scrolled {
+        background-color: #ffffff !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        padding: 0.15rem 0;
+    }
 
-        <div class="navbar-nav menu ms-auto">
-          <form class="d-flex needs-validation" novalidate method="get" action='/listings/'>
-            <div>
-              <input class="form-control me-2 search-btn" type="search" placeholder="Search Destination" aria-label="Search" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" required>
-              <div class="invalid-feedback">Search something</div>
-            </div>
-            <button class="btn btn-search" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-          </form>
-        </div>
+    /* --- Cross-Device Flex Layout --- */
+    .nav-container-custom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        gap: 0.8rem;
+    }
 
-        <div class="navbar-nav menu ms-auto">
-          <a class="nav-link" href="/listings/new">Add new listing</a>
-          <% if(!currUser) { %>
-          <a class="nav-link" href="/signup" ><b>Signup</b></a>
-          <a class="nav-link" href="/login"><b>Login</b></a>
-          <% } %>
-          <% if(currUser) { %>
-          <a class="nav-link" href="/logout"><b>Logout</b></a>
-          <% } %>
-        </div>
-      </div>
-    </div>
+    /* --- Left Menu (Logo + Home Link) --- */
+    .left-menu {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 1rem; /* Space between Logo and Home link */
+    }
     
-  </nav>
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+    }
+    .brand-logo i {
+        color: #fe424d;
+        font-size: 1.6rem;
+        transition: transform 0.3s ease;
+    }
+    .brand-logo:hover i { transform: rotate(20deg) scale(1.1); }
 
-<!-- Google Translate Script -->
-<script type="text/javascript">
-  function googleTranslateElementInit() {
-      new google.translate.TranslateElement({
-          pageLanguage: 'en',
-          includedLanguages: 'en,hi,fr,es,de,zh,ar,ru', // Added more languages
-          layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-      }, 'google_translate_element');
-  }
+    /* --- Center Search Pill --- */
+    .search-wrapper {
+        flex: 2;
+        display: flex;
+        justify-content: center;
+    }
+    .search-pill {
+        display: flex;
+        align-items: center;
+        background-color: white;
+        border: 1px solid #dddddd;
+        border-radius: 40px;
+        padding: 0.5rem 0.6rem 0.5rem 1.5rem; 
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        width: 100%;
+        max-width: 350px;
+    }
+    .search-pill:hover, .search-pill:focus-within {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        max-width: 370px;
+    }
+    .search-pill input {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0;
+        font-weight: 500;
+        font-size: 1rem;
+        width: 100%;
+    }
+    .btn-search {
+        width: 38px !important;
+        height: 38px !important;
+        background-color: #fe424d !important;
+        border-radius: 50% !important;
+        color: white !important;
+        display: flex; align-items: center; justify-content: center;
+        transition: background-color 0.2s ease;
+        flex-shrink: 0; border: none; font-size: 0.9rem;
+    }
+    .btn-search:hover { background-color: #d9353f !important; }
+
+    /* --- Right Actions Menu --- */
+    .right-menu {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
+    }
+    
+    /* Shared style for all premium text links (Home, Add Listing) */
+    .premium-link {
+        color: #222222; font-weight: 600; font-size: 0.9rem;
+        text-decoration: none; padding: 0.4rem 0.6rem;
+        border-radius: 20px; transition: background-color 0.2s ease;
+        white-space: nowrap;
+    }
+    .premium-link:hover { background-color: #f1f1f1; }
+
+    /* --- Profile Pill --- */
+    .profile-pill {
+        display: flex; align-items: center; gap: 0.8rem;
+        padding: 0.4rem 0.5rem 0.4rem 1rem;
+        border: 1px solid #dddddd; border-radius: 30px;
+        background-color: white; cursor: pointer; transition: all 0.2s ease;
+    }
+    .profile-pill:hover { box-shadow: 0 2px 6px rgba(0,0,0,0.12); }
+    .profile-pill .bars { 
+        color: #555; 
+        font-size: 1.1rem; 
+    }
+    .profile-pill .avatar {
+        background-color: #717171; color: white; border-radius: 50%;
+        width: 32px; height: 32px; 
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    /* Dropdown */
+    .custom-dropdown-menu {
+        border: none; border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        padding: 0.4rem 0; min-width: 200px; margin-top: 0.5rem !important;
+    }
+    .custom-dropdown-menu .dropdown-item { padding: 0.4rem 1rem; font-weight: 500; color: #222; font-size: 0.85rem;}
+    .custom-dropdown-menu .dropdown-item:hover { background-color: #f8f9fa; }
+
+    .language-container {
+        display: flex; align-items: center; border-radius: 30px; padding: 0.3rem; cursor: pointer;
+    }
+    .language-container:hover { background-color: #f1f1f1; }
+    .language-label i { font-size: 0.85rem; }
+
+    /* --- MOBILE COMPRESSION --- */
+    @media (max-width: 768px) {
+        .premium-navbar { padding: 0.3rem 0 !important; } 
+        .premium-navbar.scrolled { padding: 0.2rem 0 !important; }
+        .nav-container-custom { gap: 0.4rem; }
+        
+        .left-menu { gap: 0.4rem; }
+        .brand-logo i { font-size: 1.5rem; }
+        
+        .search-pill { padding: 0.3rem 0.4rem 0.3rem 1rem; }
+        .search-pill input { font-size: 0.9rem; }
+        .btn-search { width: 32px !important; height: 32px !important; font-size: 0.8rem; }
+        
+        .profile-pill { padding: 0.3rem 0.4rem 0.3rem 0.8rem; gap: 0.5rem; }
+        .profile-pill .bars { font-size: 0.9rem; }
+        .profile-pill .avatar { width: 28px; height: 28px; font-size: 0.9rem; }
+        
+        /* Hide text links on mobile to save space */
+        .premium-link { display: none !important; }
+        .language-container { display: none; }
+    }
+</style>
+
+<nav class="navbar premium-navbar sticky-top border-bottom" id="mainNavbar">
+    <div class="container-fluid px-1 px-md-3">
+        
+        <div class="nav-container-custom">
+            
+            <div class="left-menu">
+                <a class="brand-logo" href="/listings">
+                    <i id="compass" class="fa-regular fa-compass"></i>
+                </a>
+                <a class="premium-link d-none d-md-block" href="/listings">Home</a>
+            </div>
+
+            <div class="search-wrapper" id="menuSearchWrapper">
+                <form class="needs-validation m-0 w-100 d-flex justify-content-center" novalidate method="get" action='/listings/'>
+                    <div class="search-pill">
+                        <input class="form-control" type="search" placeholder="Search..." aria-label="Search" name="search" value="<%= typeof search !== 'undefined' ? search : '' %>" required>
+                        <button class="btn-search" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="right-menu">
+                
+                <a class="premium-link d-none d-md-block nav-add-listing-btn" href="/listings/new">Add new listing</a>
+                
+                <div class="language-container d-none d-md-flex" id="desktop-lang-container">
+                    <span class="language-label m-0"><i class="fa-solid fa-globe"></i></span>
+                    <div id="translate-wrapper">
+                        <div id="google_translate_element" class="custom-translate"></div>
+                    </div>
+                </div>
+
+                <div class="dropdown">
+                    <div class="profile-pill" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
+                        <i class="fa-solid fa-bars bars"></i>
+                        <div class="avatar">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    </div>
+                    
+                    <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
+                        <li class="d-md-none"><a class="dropdown-item fw-bold" href="/listings"><i class="fa-solid fa-house me-2"></i> Home</a></li>
+                        <li class="d-md-none"><hr class="dropdown-divider"></li>
+
+                        <% if(!currUser) { %>
+                            <li><a class="dropdown-item fw-bold" href="/signup">Sign up</a></li>
+                            <li><a class="dropdown-item" href="/login">Log in</a></li>
+                        <% } else { %>
+                            <li><a class="dropdown-item fw-bold" href="#">Messages</a></li>
+                            <li><a class="dropdown-item fw-bold" href="#">Trips</a></li>
+                            <li><a class="dropdown-item" href="/listings/wishlist">Wishlists</a></li>
+                        <% } %>
+                        
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li class="d-none d-md-block nav-add-listing-btn"><a class="dropdown-item" href="/listings/new">Add new listing</a></li>
+                        <li class="d-none d-md-block"><a class="dropdown-item" href="#">Help Center</a></li>
+
+                        <li class="d-md-none nav-add-listing-btn"><a class="dropdown-item" href="/listings/new">Add new listing</a></li>
+                        <li class="d-md-none"><a class="dropdown-item" href="#">Help Center</a></li>
+                        
+                        <li class="d-md-none px-3 py-2 mx-2 mt-2" style="background-color: #f8f9fa; border-radius: 10px;">
+                            <span class="d-block mb-1 fw-bold" style="font-size: 0.8rem; color: #555;"><i class="fa-solid fa-globe me-1"></i> Select Language</span>
+                            <div id="mobile-lang-container"></div>
+                        </li>
+
+                        <% if(currUser) { %>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/logout">Log out</a></li>
+                        <% } %>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</nav>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // --- Navbar Scroll Effect ---
+        const navbar = document.getElementById("mainNavbar");
+        const handleScroll = () => {
+            if (window.scrollY > 5) {
+                navbar.classList.add("scrolled");
+            } else {
+                navbar.classList.remove("scrolled");
+            }
+        };
+        window.addEventListener("scroll", handleScroll);
+        handleScroll(); 
+
+        // --- Dynamic Language Element Mover ---
+        const translateWrapper = document.getElementById('translate-wrapper');
+        const desktopContainer = document.getElementById('desktop-lang-container');
+        const mobileContainer = document.getElementById('mobile-lang-container');
+
+        const moveLanguageWidget = () => {
+            if (window.innerWidth <= 768) {
+                if (mobileContainer && !mobileContainer.contains(translateWrapper)) {
+                    mobileContainer.appendChild(translateWrapper);
+                }
+            } else {
+                if (desktopContainer && !desktopContainer.contains(translateWrapper)) {
+                    desktopContainer.appendChild(translateWrapper);
+                }
+            }
+        };
+
+        window.addEventListener('resize', moveLanguageWidget);
+        moveLanguageWidget();
+
+        // --- Contextual Show/Hide Logic based on URL ---
+        const currentPath = window.location.pathname;
+        
+        // Hide Search Bar if not on home page
+        const searchWrapper = document.getElementById('menuSearchWrapper');
+        if (searchWrapper) {
+            if (currentPath === '/listings') {
+                searchWrapper.style.display = 'flex';
+            } else {
+                searchWrapper.style.display = 'none';
+            }
+        }
+
+        // Hide "Add new listing" if user is already on the new listing page
+        if (currentPath === '/listings/new') {
+            const addListingBtns = document.querySelectorAll('.nav-add-listing-btn');
+            addListingBtns.forEach(btn => {
+                btn.style.setProperty('display', 'none', 'important');
+            });
+        }
+    });
+
+    // --- Google Translate Initialization ---
+    function googleTranslateElementInit() {
+        new google.translate.TranslateElement({
+            pageLanguage: 'en',
+            includedLanguages: 'en,hi,fr,es,de,zh,ar,ru',
+            layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+        }, 'google_translate_element');
+    }
 </script>
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
