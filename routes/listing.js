@@ -16,6 +16,10 @@ router.route('/')
 //New Route
 router.get('/new', isLoggedin ,wrapAsync(listingController.renderNewForm));
 
+router.get('/wishlist', isLoggedin, wrapAsync(listingController.showWishlist));
+
+router.post('/:id/wishlist', isLoggedin, wrapAsync(listingController.toggleWishlist));
+
 router.route('/:id')
 .get(wrapAsync(listingController.showListing))
 .put(isLoggedin, isOwner ,upload.single('image'), wrapAsync(listingController.updateListing))

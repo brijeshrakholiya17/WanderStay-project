@@ -6,7 +6,13 @@ const Userschema = new Schema({
     email : {
         type : String,
         required : true
-    }
+    },
+    wishlist: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: 'Listing'
+        }
+    ]
 });
 
 Userschema.plugin(passportLocalMongoose);

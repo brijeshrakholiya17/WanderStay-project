@@ -1,0 +1,309 @@
+<% layout("/layouts/boilerplate") %>
+
+<style>
+    body, .page1, .card {
+        background-color: #FAF9F6 !important;
+        font-family: "Plus Jakarta Sans", sans-serif;
+    }
+
+    /* --- Wishlist Header & Controls --- */
+    .wishlist-header-container {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin: 2rem 0 1.5rem 0;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #ebebeb;
+    }
+
+    .wishlist-title-group h1 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 0.2rem;
+        letter-spacing: -0.5px;
+    }
+
+    .wishlist-title-group p {
+        color: #717171;
+        font-size: 0.95rem;
+        margin: 0;
+    }
+
+    /* --- Tax Toggle & Back Button --- */
+    .wishlist-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .tax-toggle {
+        display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+        border: 1px solid rgba(0,0,0,0.1); border-radius: 12px;
+        padding: 0.6rem 1rem; background-color: #fff;
+        cursor: pointer; transition: all 0.2s ease;
+    }
+    .tax-toggle:hover { border-color: #222; background-color: #f8f9fa; }
+    .tax-toggle label { font-size: 0.9rem; font-weight: 600; cursor: pointer; margin: 0; color: #222; }
+    .form-switch .form-check-input { width: 2.5em; height: 1.25em; cursor: pointer; margin: 0;}
+    .form-switch .form-check-input:checked { background-color: #222; border-color: #222; }
+
+    .btn-back {
+        background-color: #fff;
+        border: 1px solid #222;
+        color: #222;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .btn-back:hover {
+        background-color: #f8f9fa;
+        color: #222;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    /* --- Empty State --- */
+    .empty-state {
+        text-align: center;
+        padding: 6rem 1rem;
+        background: #fff;
+        border: 1px dashed #ddd;
+        border-radius: 1.5rem;
+        margin-top: 2rem;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: #fe424d;
+        margin-bottom: 1.5rem;
+        opacity: 0.8;
+    }
+    .empty-state h3 {
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 0.5rem;
+    }
+    .empty-state p {
+        color: #717171;
+        margin-bottom: 1.5rem;
+    }
+    .btn-explore {
+        background-color: #fe424d;
+        color: #fff;
+        font-weight: 600;
+        padding: 0.8rem 2rem;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .btn-explore:hover {
+        background-color: #d9353f;
+        color: #fff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(254, 66, 77, 0.2);
+    }
+
+    /* --- Listings Cards (Exact match to index.ejs) --- */
+    .listings { margin-top: 0.5rem; transition: opacity 0.3s ease;}
+    .listing-col { transition: opacity 0.4s ease, transform 0.4s ease; } /* For smooth fade out */
+    .listing-card { border: none !important; border-radius: 1.2rem; background: transparent; text-decoration: none; color: inherit; opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+    .img-container { position: relative; border-radius: 1.2rem; overflow: hidden; aspect-ratio: 1/1; }
+    .card-img-top { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .listing-card:hover .card-img-top { transform: scale(1.05); }
+    
+    .heart-icon { position: absolute; top: 15px; right: 15px; color: rgba(0,0,0,0.5); font-size: 1.5rem; z-index: 5; transition: all 0.2s; cursor: pointer; }
+    .heart-icon:hover { transform: scale(1.1); }
+    .heart-icon.favorited { color: #fe424d; text-shadow: 0 0 10px rgba(254,66,77,0.4); }
+    
+    .card-body { padding: 0.8rem 0 !important; }
+    .card-title { font-weight: 700; font-size: 1.05rem; margin-bottom: 0.1rem; color: #222; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-category { color: #717171; font-size: 0.9rem; margin-bottom: 0.3rem;}
+    .card-price-container { margin-top: 0.2rem; font-size: 0.95rem; color: #222; }
+    .price-val { font-weight: 600; }
+    #card-anchor { text-decoration: none !important; }
+
+    @keyframes fadeInUp { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
+
+    /* --- MOBILE RESPONSIVENESS --- */
+    @media (max-width: 768px) {
+        .wishlist-header-container {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .wishlist-title-group h1 { font-size: 1.8rem; }
+        .wishlist-actions {
+            width: 100%;
+            justify-content: space-between;
+        }
+        .tax-toggle { padding: 0.5rem 0.8rem; }
+        .tax-toggle label { font-size: 0.85rem; }
+    }
+
+    @media (max-width: 576px) {
+        .wishlist-actions { flex-direction: column-reverse; align-items: stretch;}
+        .btn-back { text-align: center; }
+    }
+</style>
+
+<div class="page1 container position-relative">
+    
+    <div class="wishlist-header-container">
+        <div class="wishlist-title-group">
+            <h1>My Wishlist</h1>
+            <p>Saved stays you've liked</p>
+        </div>
+        
+        <div class="wishlist-actions">
+            <% if (wishlistListings && wishlistListings.length > 0) { %>
+            <div class="tax-toggle" onclick="document.getElementById('taxSwitch').click()">
+                <label for="taxSwitch" id="taxLabel">Total after taxes</label>
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input m-0" type="checkbox" role="switch" id="taxSwitch" onclick="event.stopPropagation()">
+                </div>
+            </div>
+            <% } %>
+            <a href="/listings" class="btn-back">Back to Explore</a>
+        </div>
+    </div>
+
+    <% if (!wishlistListings || wishlistListings.length === 0) { %>
+        <div class="empty-state">
+            <i class="fa-solid fa-heart-circle-plus"></i>
+            <h3>No saved listings yet</h3>
+            <p>Tap the heart on any property to save your favorite stays here.</p>
+            <a href="/listings" class="btn-explore">Start Exploring</a>
+        </div>
+    <% } else { %>
+        
+        <div class="listings pt-2">
+            <div class="row row-cols-xl-4 row-cols-lg-3 row-cols-md-2 row-cols-sm-2 row-cols-1 g-4" id="wishlistRow">
+                <% let delay = 0; %>
+                <% for (let listing of wishlistListings) { %>
+                    <div class="col listing-col" data-listing-id="<%= listing._id %>">
+                        <a href="/listings/<%= listing._id %>" id="card-anchor">
+                            <div class="card listing-card" style="animation-delay: <%= delay %>s;">
+                                <div class="img-container">
+                                    <img src="<%= listing.image?.url || '/assets/default.jpg' %>" class="card-img-top" alt="listing_img">
+                                    <i class="fa-solid fa-heart heart-icon favorited"></i>
+                                </div>
+                                <div class="card-body">
+                                    <div class="card-title"><%= listing.title %></div>
+                                    <div class="card-category"><%= listing.category %></div>
+                                    <div class="card-price-container">
+                                        <i class="fa-solid fa-indian-rupee-sign" style="font-size: 0.8rem;"></i>
+                                        <span class="price-val" 
+                                              data-original="<%= listing.price.toLocaleString() %>" 
+                                              data-tax="<%= (listing.price + (listing.price * 0.17)).toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %>">
+                                            <%= listing.price.toLocaleString() %>
+                                        </span>
+                                        <span style="font-weight: 400;">/night</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <% delay += 0.05; %>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="empty-state" id="dynamicEmptyState" style="display: none;">
+            <i class="fa-solid fa-heart-circle-minus" style="color: #b0b0b0;"></i>
+            <h3>Wishlist cleared</h3>
+            <p>You've removed all saved stays. Time to find new favorites!</p>
+            <a href="/listings" class="btn-explore">Explore properties</a>
+        </div>
+
+    <% } %>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        
+        // --- Tax Toggle Logic ---
+        const taxSwitch = document.getElementById("taxSwitch");
+        const taxLabel = document.getElementById("taxLabel");
+        const priceElements = document.querySelectorAll(".price-val");
+
+        if(taxSwitch) {
+            taxSwitch.addEventListener("change", function() {
+                if (this.checked) {
+                    taxLabel.textContent = "Total before taxes"; 
+                    priceElements.forEach(el => {
+                        el.style.opacity = 0;
+                        setTimeout(() => { el.textContent = el.getAttribute("data-tax"); el.style.opacity = 1; }, 150);
+                    });
+                } else {
+                    taxLabel.textContent = "Total after taxes";
+                    priceElements.forEach(el => {
+                        el.style.opacity = 0;
+                        setTimeout(() => { el.textContent = el.getAttribute("data-original"); el.style.opacity = 1; }, 150);
+                    });
+                }
+            });
+            priceElements.forEach(el => el.style.transition = "opacity 0.15s ease");
+        }
+
+        // --- Dynamic Un-Favoriting Logic ---
+        const heartIcons = document.querySelectorAll(".heart-icon");
+        const wishlistRow = document.getElementById("wishlistRow");
+        const dynamicEmptyState = document.getElementById("dynamicEmptyState");
+        
+        let remainingItems = heartIcons.length;
+
+        heartIcons.forEach(icon => {
+            icon.addEventListener("click", async (event) => {
+                event.preventDefault(); // Stop link navigation
+                event.stopPropagation();
+                
+                const listingCol = icon.closest('.listing-col');
+                const listingId = listingCol?.dataset.listingId;
+                if (!listingId) return;
+
+                try {
+                    // Send request to toggle wishlist status
+                    const res = await fetch(`/listings/${listingId}/wishlist`, { method: 'POST' });
+                    
+                    if (res.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    
+                    if (!res.ok) {
+                        alert('Could not update wishlist');
+                        return;
+                    }
+
+                    // If successfully removed, animate it out of the grid
+                    const data = await res.json();
+                    if (!data.favorited) {
+                        // Smooth fade and shrink animation
+                        listingCol.style.transform = "scale(0.9)";
+                        listingCol.style.opacity = "0";
+                        
+                        setTimeout(() => {
+                            listingCol.remove(); // Remove from DOM
+                            remainingItems--;
+                            
+                            // If wishlist is now empty, show the empty state
+                            if(remainingItems === 0 && wishlistRow) {
+                                wishlistRow.style.display = "none";
+                                dynamicEmptyState.style.display = "block";
+                                // Hide tax toggle since there are no prices
+                                document.querySelector('.tax-toggle').style.display = "none";
+                            }
+                        }, 400); // Matches CSS transition time
+                    }
+                } catch (err) {
+                    console.error(err);
+                }
+            });
+        });
+    });
+</script>
