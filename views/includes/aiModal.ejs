@@ -1,0 +1,464 @@
+<!-- AI Price Suggestion Modal -->
+<div class="modal fade" id="aiPriceModal" tabindex="-1" aria-labelledby="aiPriceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px; overflow: hidden; font-family: 'Plus Jakarta Sans', sans-serif;">
+            
+            <!-- Modal Header -->
+            <div class="modal-header bg-dark text-white border-0 py-3 px-3 px-sm-4 d-flex align-items-center justify-content-between">
+                <h5 class="modal-title fw-bold m-0" id="aiPriceModalLabel" style="font-size: 1.1rem;">
+                    <i class="fa-solid fa-wand-magic-sparkles text-warning me-2 animate-pulse"></i> WanderStay AI Pricing
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body p-3 p-sm-4 bg-light">
+                
+                <!-- STEP 1: PARAMETER INPUT -->
+                <div id="ai-step-input">
+                    <div class="alert alert-info border-0 rounded-3 mb-3 mb-sm-4" style="background-color: #f0f4f8; color: #1e3a8a; padding: 12px 16px;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fa-solid fa-circle-info mt-1" style="font-size: 1rem;"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1" style="font-size: 0.9rem;">Fine-tune your price suggestion</h6>
+                                <p class="m-0 text-muted" style="font-size: 0.8rem; line-height: 1.4;">We've pre-filled details from your listing form. Specify a few extra parameters below to get the most accurate price suggestion.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3 mb-sm-4">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold text-dark mb-1" style="font-size: 0.9rem;">Room / Property Type</label>
+                            <select id="ai-room-type" class="form-select border-secondary-subtle py-2 px-3" style="border-radius: 10px; font-size: 0.9rem;">
+                                <option value="Entire home/apt" selected>Entire home/apt</option>
+                                <option value="Private room">Private room</option>
+                                <option value="Shared room">Shared room</option>
+                                <option value="Hotel room">Hotel room</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold text-dark mb-1" style="font-size: 0.9rem;">Current Season</label>
+                            <select id="ai-season" class="form-select border-secondary-subtle py-2 px-3" style="border-radius: 10px; font-size: 0.9rem;">
+                                <option value="Peak Season (High demand, festivals, holidays)" selected>Peak Season (High demand)</option>
+                                <option value="Shoulder Season (Regular demand, pleasant weather)">Shoulder Season (Regular demand)</option>
+                                <option value="Off-Peak Season (Low demand, monsoon/extreme weather)">Off-Peak Season (Low demand)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3 mb-sm-4">
+                        <label class="form-label fw-semibold text-dark mb-1" style="font-size: 0.9rem;">Amenities</label>
+                        <textarea id="ai-amenities" class="form-control border-secondary-subtle py-2 px-3" rows="3" style="border-radius: 10px; resize: none; font-size: 0.9rem;" placeholder="e.g. WiFi, Air Conditioning, Free Parking, Swimming Pool, Kitchen, Washing Machine, Geyser, TV"></textarea>
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">List key amenities separated by commas to help the AI model compare against matching local properties.</div>
+                    </div>
+
+                    <!-- Listing context summary (Read-only) -->
+                    <div class="p-3 border rounded-3 bg-white mb-3 mb-sm-4">
+                        <h6 class="fw-bold text-dark mb-2" style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;">Detected Listing Context</h6>
+                        <div class="row g-2" style="font-size: 0.8rem; line-height: 1.4;">
+                            <div class="col-12 col-sm-6 text-muted"><strong>Title:</strong> <span id="ctx-title" class="text-dark"></span></div>
+                            <div class="col-12 col-sm-6 text-muted"><strong>Category:</strong> <span id="ctx-category" class="text-dark"></span></div>
+                            <div class="col-12 text-muted"><strong>Location:</strong> <span id="ctx-location" class="text-dark"></span></div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column-reverse flex-sm-row justify-content-sm-end gap-2">
+                        <button type="button" class="btn btn-secondary py-2 w-100 w-sm-auto" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600; font-size: 0.9rem;">Cancel</button>
+                        <button type="button" id="btn-generate-ai" class="btn btn-danger py-2 w-100 w-sm-auto" style="background-color: #fe424d; border: none; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+                            Generate Price Range <i class="fa-solid fa-arrow-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 2: LOADING SCREEN -->
+                <div id="ai-step-loading" class="d-none text-center py-4 py-sm-5">
+                    <div class="spinner-container position-relative mb-4">
+                        <div class="spinner-border text-danger" role="status" style="width: 4.5rem; height: 4.5rem; border-width: 5px;"></div>
+                        <i class="fa-solid fa-wand-magic-sparkles text-warning position-absolute translate-middle-x" style="font-size: 1.6rem; margin-top: 1.45rem; left: 50%;"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2" style="font-size: 1.3rem;">Analyzing market pricing...</h4>
+                    <p id="loading-message" class="text-muted fs-7 mb-0 px-2 px-sm-5" style="line-height: 1.4;">Consulting real estate listings in local directory...</p>
+                    <div class="progress mt-4 mx-auto w-75 w-sm-50" style="height: 6px; border-radius: 3px; background-color: #e9ecef;">
+                        <div id="loading-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-danger" role="progressbar" style="width: 10%"></div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: RESULTS SCREEN -->
+                <div id="ai-step-results" class="d-none">
+                    <div class="row g-3 g-sm-4 mb-3 mb-sm-4">
+                        
+                        <!-- Left suggested price card -->
+                        <div class="col-12 col-md-5">
+                            <div class="card border-0 h-100 p-4 text-center justify-content-center shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white;">
+                                <h6 class="text-uppercase tracking-wider fw-bold text-secondary mb-2" style="font-size: 0.75rem; color: #94a3b8 !important;">Suggested Price</h6>
+                                <div class="d-flex align-items-center justify-content-center mb-1">
+                                    <span class="fs-3 fw-semibold me-1">₹</span>
+                                    <span id="res-suggested-price" class="display-6 display-md-5 fw-extrabold" style="letter-spacing: -1px;">1,500</span>
+                                </div>
+                                <p class="text-secondary mb-3" style="font-size: 0.8rem; color: #94a3b8 !important;">per night</p>
+                                
+                                <div>
+                                    <span id="res-confidence-badge" class="badge px-3 py-2 fs-7" style="border-radius: 20px; font-weight: 700; font-size: 0.75rem;">High Confidence</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right range details -->
+                        <div class="col-12 col-md-7">
+                            <div class="card border-0 p-3 p-sm-4 h-100 shadow-sm bg-white" style="border-radius: 16px;">
+                                <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem;">Optimal Pricing Range</h6>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-1 text-muted" style="font-size: 0.8rem;">
+                                    <span>Lower Limit</span>
+                                    <span>Upper Limit</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="fw-bold fs-6 fs-sm-5 text-dark">₹<span id="res-min-price">1,200</span></span>
+                                    <span class="fw-bold fs-6 fs-sm-5 text-dark">₹<span id="res-max-price">1,800</span></span>
+                                </div>
+
+                                <!-- Range Visualizer bar -->
+                                <div class="position-relative mb-3 pt-2">
+                                    <div class="progress" style="height: 10px; border-radius: 5px; background-color: #f1f5f9;">
+                                        <div class="progress-bar bg-success-subtle rounded-5" role="progressbar" style="width: 100%"></div>
+                                    </div>
+                                    <div id="range-indicator" class="position-absolute bg-danger shadow-sm border border-white" style="width: 18px; height: 18px; border-radius: 50%; top: 4px; left: 50%; cursor: pointer;" title="Suggested Price Location"></div>
+                                </div>
+
+                                <p class="text-muted mb-0" style="font-size: 0.8rem; line-height: 1.5;">
+                                    Pricing models indicate listings priced within this bracket maximize occupancy rates while preserving optimal yield.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Market Rationales -->
+                    <div class="card border-0 p-3 p-sm-4 mb-3 mb-sm-4 shadow-sm bg-white" style="border-radius: 16px;">
+                        <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem;"><i class="fa-solid fa-chart-line text-danger me-2"></i>AI Market Intelligence Analysis</h6>
+                        <ul id="res-analysis-list" class="list-unstyled mb-0 d-flex flex-column gap-2" style="font-size: 0.85rem; line-height: 1.5;">
+                            <!-- Dynamically loaded points -->
+                        </ul>
+                    </div>
+
+                    <div class="d-flex flex-column flex-md-row justify-content-md-between align-items-md-center gap-3">
+                        <button type="button" id="btn-re-estimate" class="btn btn-outline-secondary py-2 w-100 w-md-auto" style="border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Edit Parameters
+                        </button>
+                        <div class="d-flex flex-column-reverse flex-md-row gap-2 w-100 w-md-auto">
+                            <button type="button" class="btn btn-secondary py-2 w-100 w-md-auto" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600; font-size: 0.9rem;">Keep Current</button>
+                            <button type="button" id="btn-apply-price" class="btn btn-danger py-2 w-100 w-md-auto" style="background-color: #fe424d; border: none; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+                                Apply Suggested Price <i class="fa-solid fa-circle-check ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: ERROR SCREEN -->
+                <div id="ai-step-error" class="d-none text-center py-4 py-sm-5">
+                    <i class="fa-solid fa-circle-exclamation text-danger mb-3" style="font-size: 3.5rem;"></i>
+                    <h4 class="fw-bold text-dark mb-2" style="font-size: 1.3rem;">Pricing Suggestion Failed</h4>
+                    <p id="error-message" class="text-muted fs-7 mb-4 px-2 px-sm-5" style="line-height: 1.4;">There was a server issue processing your suggestion. Please check your internet connection or verify your API configuration.</p>
+                    <button type="button" id="btn-error-back" class="btn btn-outline-danger px-4 py-2 w-100 w-sm-auto" style="border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+                        Try Again
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .animate-pulse {
+        animation: pulse-animation 2s infinite;
+    }
+    @keyframes pulse-animation {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Modal references
+        const modalElement = document.getElementById("aiPriceModal");
+        let aiPriceModalInstance = null;
+        if (typeof bootstrap !== 'undefined') {
+            aiPriceModalInstance = new bootstrap.Modal(modalElement);
+        }
+
+        // Trigger button references
+        const btnTrigger = document.getElementById("btn-ai-suggest");
+        
+        // Modal navigation sections
+        const stepInput = document.getElementById("ai-step-input");
+        const stepLoading = document.getElementById("ai-step-loading");
+        const stepResults = document.getElementById("ai-step-results");
+        const stepError = document.getElementById("ai-step-error");
+        
+        // Elements to update
+        const loadingMessage = document.getElementById("loading-message");
+        const loadingProgressBar = document.getElementById("loading-progress-bar");
+        
+        const resSuggestedPrice = document.getElementById("res-suggested-price");
+        const resMinPrice = document.getElementById("res-min-price");
+        const resMaxPrice = document.getElementById("res-max-price");
+        const resConfidenceBadge = document.getElementById("res-confidence-badge");
+        const resAnalysisList = document.getElementById("res-analysis-list");
+        const rangeIndicator = document.getElementById("range-indicator");
+        
+        const errorMessage = document.getElementById("error-message");
+        
+        // Form field context elements
+        const ctxTitle = document.getElementById("ctx-title");
+        const ctxCategory = document.getElementById("ctx-category");
+        const ctxLocation = document.getElementById("ctx-location");
+
+        // Stored suggestion results
+        let currentSuggestedPriceVal = null;
+        let progressInterval = null;
+
+        // Open modal button click handler
+        if (btnTrigger) {
+            btnTrigger.addEventListener("click", function () {
+                // Fetch current values from listing page input fields
+                const titleVal = document.getElementById("title") ? document.getElementById("title").value.trim() : "";
+                const locationVal = document.getElementById("location") ? document.getElementById("location").value.trim() : "";
+                const countryVal = document.getElementById("country") ? document.getElementById("country").value.trim() : "";
+                const categoryVal = document.getElementById("category") ? document.getElementById("category").value.trim() : "";
+                
+                // Validate required fields for context
+                if (!titleVal || !locationVal || !countryVal) {
+                    alert("Please fill in the Property Title, Location, and Country fields on the form first to provide context for the AI pricing analysis.");
+                    return;
+                }
+
+                // Pre-fill read-only context in modal
+                ctxTitle.textContent = titleVal;
+                ctxCategory.textContent = categoryVal || "None Selected";
+                ctxLocation.textContent = `${locationVal}, ${countryVal}`;
+
+                // Show step input screen
+                showStep(stepInput);
+
+                // Show modal
+                if (aiPriceModalInstance) {
+                    aiPriceModalInstance.show();
+                }
+            });
+        }
+
+        // Generate suggestion button inside modal click handler
+        const btnGenerate = document.getElementById("btn-generate-ai");
+        if (btnGenerate) {
+            btnGenerate.addEventListener("click", function () {
+                const titleVal = document.getElementById("title").value.trim();
+                const descriptionVal = document.getElementById("description") ? document.getElementById("description").value.trim() : "";
+                const categoryVal = document.getElementById("category").value.trim();
+                const locationVal = document.getElementById("location").value.trim();
+                const countryVal = document.getElementById("country").value.trim();
+
+                const roomTypeVal = document.getElementById("ai-room-type").value;
+                const seasonVal = document.getElementById("ai-season").value;
+                const amenitiesVal = document.getElementById("ai-amenities").value.trim();
+
+                // Move to loading step
+                showStep(stepLoading);
+                startLoadingAnimation(locationVal);
+
+                // Make API request to backend
+                fetch("/listings/ai-price-suggestion", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        title: titleVal,
+                        description: descriptionVal,
+                        category: categoryVal,
+                        location: locationVal,
+                        country: countryVal,
+                        roomType: roomTypeVal,
+                        season: seasonVal,
+                        amenities: amenitiesVal
+                    })
+                })
+                .then(response => {
+                    clearInterval(progressInterval);
+                    if (!response.ok) {
+                        return response.json().then(errData => {
+                            throw new Error(errData.message || `HTTP error! Status: ${response.status}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(resData => {
+                    if (resData.status === "success" && resData.data) {
+                        renderResults(resData.data);
+                        showStep(stepResults);
+                    } else {
+                        throw new Error(resData.message || "Failed to generate optimal price details.");
+                    }
+                })
+                .catch(err => {
+                    clearInterval(progressInterval);
+                    console.error("AI Price Suggestion Fetch Error:", err);
+                    errorMessage.textContent = err.message || "There was a server issue processing your suggestion. Please check your internet connection or verify your API configuration.";
+                    showStep(stepError);
+                });
+            });
+        }
+
+        // Apply Price button handler
+        const btnApply = document.getElementById("btn-apply-price");
+        if (btnApply) {
+            btnApply.addEventListener("click", function () {
+                const priceInput = document.getElementById("price");
+                if (priceInput && currentSuggestedPriceVal !== null) {
+                    priceInput.value = currentSuggestedPriceVal;
+                    
+                    // Flash feedback on listing price input
+                    priceInput.focus();
+                    priceInput.style.transition = "all 0.3s ease";
+                    priceInput.style.borderColor = "#2563eb";
+                    priceInput.style.boxShadow = "0 0 0 0.25rem rgba(37, 99, 235, 0.25)";
+                    
+                    setTimeout(() => {
+                        priceInput.style.borderColor = "#222";
+                        priceInput.style.boxShadow = "none";
+                    }, 1500);
+
+                    // Close modal
+                    if (aiPriceModalInstance) {
+                        aiPriceModalInstance.hide();
+                    }
+                }
+            });
+        }
+
+        // Back button handlers
+        const btnReEstimate = document.getElementById("btn-re-estimate");
+        if (btnReEstimate) {
+            btnReEstimate.addEventListener("click", () => showStep(stepInput));
+        }
+
+        const btnErrorBack = document.getElementById("btn-error-back");
+        if (btnErrorBack) {
+            btnErrorBack.addEventListener("click", () => showStep(stepInput));
+        }
+
+        // Helper function to show specific screen inside modal
+        function showStep(stepElement) {
+            stepInput.classList.add("d-none");
+            stepLoading.classList.add("d-none");
+            stepResults.classList.add("d-none");
+            stepError.classList.add("d-none");
+            
+            stepElement.classList.remove("d-none");
+        }
+
+        // Simulated progress bar & loading messages
+        function startLoadingAnimation(locationName) {
+            loadingProgressBar.style.width = "10%";
+            loadingMessage.textContent = `Consulting real estate listings in ${locationName}...`;
+            
+            const messages = [
+                `Searching similar Airbnb properties in ${locationName}...`,
+                "Analyzing category and description matches...",
+                "Evaluating seasonal demand adjustments...",
+                "Weighing room type and amenities impact...",
+                "Generating optimal pricing intelligence model..."
+            ];
+            
+            let progress = 10;
+            let msgIdx = 0;
+            
+            progressInterval = setInterval(() => {
+                progress += Math.floor(Math.random() * 12) + 5;
+                if (progress > 95) progress = 95; // Wait at 95% until complete
+                
+                loadingProgressBar.style.width = `${progress}%`;
+                
+                if (progress % 20 === 0 || Math.random() > 0.7) {
+                    loadingMessage.textContent = messages[msgIdx];
+                    msgIdx = (msgIdx + 1) % messages.length;
+                }
+            }, 600);
+        }
+
+        // Format and render results in step 3
+        function runCountUp(element, finalValue) {
+            let start = 0;
+            let duration = 1200; // ms
+            let startTime = null;
+
+            function animate(timestamp) {
+                if (!startTime) startTime = timestamp;
+                let progress = timestamp - startTime;
+                let current = Math.min(Math.floor((progress / duration) * finalValue), finalValue);
+                element.textContent = current.toLocaleString("en-IN");
+                if (progress < duration) {
+                    window.requestAnimationFrame(animate);
+                } else {
+                    element.textContent = finalValue.toLocaleString("en-IN");
+                }
+            }
+            window.requestAnimationFrame(animate);
+        }
+
+        // Format and render results in step 3
+        function renderResults(data) {
+            const suggested = Number(data.suggestedPrice) || 0;
+            const min = Number(data.minPrice) || 0;
+            const max = Number(data.maxPrice) || 0;
+            const confidence = data.confidence || "Medium";
+            const analysis = data.analysis || [];
+
+            currentSuggestedPriceVal = suggested;
+
+            // Run a clean count-up visual effect for the suggested price
+            runCountUp(resSuggestedPrice, suggested);
+            
+            resMinPrice.textContent = min.toLocaleString("en-IN");
+            resMaxPrice.textContent = max.toLocaleString("en-IN");
+
+            // Confidence level styling
+            resConfidenceBadge.textContent = `${confidence} Confidence`;
+            resConfidenceBadge.className = "badge px-3 py-2 fs-7"; // Reset classes
+            
+            if (confidence.toLowerCase() === "high") {
+                resConfidenceBadge.classList.add("bg-success");
+            } else if (confidence.toLowerCase() === "low") {
+                resConfidenceBadge.classList.add("bg-danger");
+            } else {
+                resConfidenceBadge.classList.add("bg-warning", "text-dark");
+            }
+
+            // Move the marker in the slider bar
+            const rangeSpan = max - min;
+            let percentPosition = 50; // default middle
+            if (rangeSpan > 0) {
+                percentPosition = ((suggested - min) / rangeSpan) * 100;
+                if (percentPosition < 0) percentPosition = 0;
+                if (percentPosition > 100) percentPosition = 100;
+            }
+            rangeIndicator.style.left = `calc(${percentPosition}% - 9px)`;
+
+            // Render analysis items
+            resAnalysisList.innerHTML = "";
+            if (analysis.length === 0) {
+                resAnalysisList.innerHTML = `<li><i class="fa-solid fa-circle-check text-success me-2"></i>Pricing generated based on category and region standard rates.</li>`;
+            } else {
+                analysis.forEach(item => {
+                    const li = document.createElement("li");
+                    li.className = "d-flex align-items-start gap-2 mb-1";
+                    li.innerHTML = `<i class="fa-solid fa-circle-check text-success mt-1" style="font-size: 0.85rem;"></i><span>${item}</span>`;
+                    resAnalysisList.appendChild(li);
+                });
+            }
+        }
+    });
+</script>

@@ -2,6 +2,7 @@ const Listing = require('../models/listing.js');
 const User = require('../models/user.js');
 const { v4: uuidv4 } = require('uuid');
 const ExpressError = require("../utils/ExpressError.js");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 module.exports.index = async (req,res) => {
     const search = req.query.search;
@@ -161,3 +162,86 @@ module.exports.showWishlist = async (req, res) => {
     const wishlistListings = user.wishlist || [];
     res.render('listings/wishlist.ejs', { wishlistListings });
 };
+
+module.exports.getAiPriceSuggestion = async (req, res) => {
+    try {
+        const { title, description, category, location, country, roomType, season, amenities } = req.body;
+        
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Gemini API key is not configured. Please add GEMINI_API_KEY to your environment variables (.env).'
+            });
+        }
+        
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+        
+        const prompt = `
+            You are a real-estate and holiday rental pricing expert. Based on the following property details, suggest an optimal price range.
+            
+            Property Title: ${title || "N/A"}
+            Description: ${description || "N/A"}
+            Category: ${category || "N/A"}
+            Location/City: ${location || "N/A"}
+            Country: ${country || "N/A"}
+            Room Type: ${roomType || "N/A"}
+            Season: ${season || "N/A"}
+            Amenities: ${amenities || "N/A"}
+            
+            Task:
+            1. Analyze this property against similar Airbnb listings in ${location || "this area"} with comparable amenities.
+            2. Determine:
+               - The suggested optimal price per night (in Indian Rupees INR, return just a number).
+               - The min and max price range per night.
+               - Your confidence rating (High, Medium, Low) based on the inputs provided.
+               - 3-4 bullet points detailing your market analysis (e.g., impact of location, amenities, room type, season, etc.).
+            
+            Return the output as a valid JSON object ONLY. Do not write any markdown code blocks, text before or after the JSON.
+            The JSON object must have EXACTLY the following format:
+            {
+              "suggestedPrice": 1500,
+              "minPrice": 1200,
+              "maxPrice": 1800,
+              "confidence": "High",
+              "currency": "INR",
+              "analysis": [
+                "Analysis point 1...",
+                "Analysis point 2...",
+                "Analysis point 3..."
+              ]
+            }
+        `;
+        
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text().trim();
+        
+        // Robust JSON parsing (handles potential markdown code blocks)
+        let cleanedText = responseText;
+        if (cleanedText.startsWith("```")) {
+            cleanedText = cleanedText.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+        }
+        
+        let suggestion;
+        try {
+            suggestion = JSON.parse(cleanedText);
+        } catch (parseErr) {
+            console.error("Gemini raw response:", responseText);
+            throw new Error("Failed to parse Gemini API response. Raw response was not valid JSON.");
+        }
+        
+        return res.json({
+            status: 'success',
+            data: suggestion
+        });
+        
+    } catch (err) {
+        console.error("AI Price Suggestion Error:", err);
+        return res.status(500).json({
+            status: 'error',
+            message: err.message || 'An error occurred while fetching the price suggestion.'
+        });
+    }
+};
+
