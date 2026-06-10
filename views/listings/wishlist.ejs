@@ -199,7 +199,7 @@
                                         <i class="fa-solid fa-indian-rupee-sign" style="font-size: 0.8rem;"></i>
                                         <span class="price-val" 
                                               data-original="<%= listing.price.toLocaleString() %>" 
-                                              data-tax="<%= (listing.price + (listing.price * 0.17)).toLocaleString('en-IN', {minimumFractionDigits: 0, maximumFractionDigits: 0}) %>">
+                                              data-tax="<%= Math.round(listing.price * 1.17).toLocaleString() %>">
                                             <%= listing.price.toLocaleString() %>
                                         </span>
                                         <span style="font-weight: 400;">/night</span>
@@ -268,7 +268,12 @@
 
                 try {
                     // Send request to toggle wishlist status
-                    const res = await fetch(`/listings/${listingId}/wishlist`, { method: 'POST' });
+                    const res = await fetch(`/listings/${listingId}/wishlist`, { 
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
                     
                     if (res.status === 401) {
                         window.location.href = '/login';
@@ -276,7 +281,8 @@
                     }
                     
                     if (!res.ok) {
-                        alert('Could not update wishlist');
+                        const errorData = await res.json().catch(() => ({}));
+                        alert(errorData.message || 'Could not update wishlist');
                         return;
                     }
 
