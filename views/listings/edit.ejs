@@ -393,6 +393,12 @@
                                 <label for="price">Price per night</label>
                             </div>
                         </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                            <small class="text-muted" style="font-size: 0.75rem;">Not sure what to charge?</small>
+                            <button type="button" class="btn btn-sm btn-outline-dark py-1 px-2 border-secondary-subtle" id="btn-ai-suggest" style="border-radius: 8px; font-weight: 600; font-size: 0.75rem;">
+                                <i class="fa-solid fa-wand-magic-sparkles" style="color: #fe424d; margin-right: 4px;"></i> Get AI Price Suggestion
+                            </button>
+                        </div>
                     </div>
 
                     <div class="col-md-6">
@@ -446,6 +452,8 @@
         </div>
     </div>
 </div>
+
+<%- include("../includes/aiModal.ejs") %>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
