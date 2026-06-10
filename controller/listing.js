@@ -59,34 +59,37 @@ module.exports.showListing = async (req,res) => {
 module.exports.createListing = async (req,res,next) => {
     let url = req.file.path;
     let filename = req.file.filename;
-    let {id} = uuidv4();
-    let {title : newtitle , description : Newdesc , image : Newimg , price : Newprice , location : Newlocation , country : Newcountry , category : Newcategory} = req.body;
-    const newlist = new Listing(
-        {
-            _id : id,
-            title : newtitle , 
-            description : Newdesc , 
-            image : Newimg , 
-            price : Newprice, 
-            location : Newlocation , 
-            country : Newcountry ,
-            category : Newcategory
-        });
-    console.log(typeof(Newprice));
-    req.flash('success','New listing created!');
-    if(!newlist.description) {
+    
+    // Removed: let id = uuidv4(); 
+    
+    let {title, description, image, price, location, country, category} = req.body;
+    
+    // Validate required fields
+    if(!description) {
         throw new ExpressError(400, "Description is missing");
     }
-    if(!newlist.location) {
+    if(!location) {
         throw new ExpressError(400, "Location is missing");
     }
-    if(!newlist.country) {
+    if(!country) {
         throw new ExpressError(400, "Country is missing");
     }
-    newlist.owner = req.user._id;
-    newlist.image = {url , filename};
+    
+    const newlist = new Listing({
+        // Removed _id assignment entirely. MongoDB will handle it.
+        title: title,
+        description: description,
+        image: {url, filename},
+        price: price,
+        location: location,
+        country: country,
+        category: category,
+        owner: req.user._id
+    });
+    
     let samplelist = await newlist.save();
     console.log(samplelist);
+    req.flash('success','New listing created!');
     res.redirect("/listings");
 }
 
@@ -97,13 +100,12 @@ module.exports.renderEditForm = async (req,res) => {
         req.flash('error','Listing you requested for does not exist!');
         res.redirect("/listings");
     }
-    let originalImageUrl = listing.image.url;
-    originalImageUrl.replace("/upload","/upload/w_250");
+    let originalImageUrl = listing.image.url.replace("/upload","/upload/w_250");
     res.render("listings/edit.ejs" , {listing , originalImageUrl});
 }
 
 module.exports.updateListing = async (req,res) => {
-    let {id} = req.params;
+    let {id} = req.params;      
     let listing = await Listing.findByIdAndUpdate(id,req.body);
 
     if(typeof req.file !== "undefined"){
@@ -125,6 +127,11 @@ module.exports.destroyListing = async (req,res) => {
 
 module.exports.toggleWishlist = async (req, res) => {
     const { id } = req.params;
+    
+    if (!req.user) {
+        return res.status(401).json({ status: 'error', message: 'User not authenticated' });
+    }
+    
     const listing = await Listing.findById(id);
     if (!listing) {
         return res.status(404).json({ status: 'error', message: 'Listing not found' });
@@ -132,14 +139,21 @@ module.exports.toggleWishlist = async (req, res) => {
 
     const user = req.user;
     const exists = user.wishlist.some(listingId => listingId.toString() === id);
+    
     if (exists) {
         user.wishlist = user.wishlist.filter(listingId => listingId.toString() !== id);
     } else {
         user.wishlist.push(id);
     }
+    
     await user.save();
-
-    return res.json({ status: 'success', wishlist: user.wishlist.map(id => id.toString()), favorited: !exists });
+    const favorited = !exists;
+    
+    return res.json({ 
+        status: 'success', 
+        wishlist: user.wishlist.map(id => id.toString()), 
+        favorited: favorited 
+    });
 };
 
 module.exports.showWishlist = async (req, res) => {

@@ -33,6 +33,7 @@ app.get('/wanderlust-icon.png', (req, res) => {
     return res.sendFile(path.join(__dirname, 'assets', 'compass-fav.svg'));
 });
 app.use(methodOverride('_method'));
+app.use(express.json());
 app.use(express.urlencoded({extended : true}));
 app.engine('ejs',ejsMate);
 
@@ -114,6 +115,10 @@ app.all('*',(req,res,next) => {
 
 app.use((err,req,res,next) => {
     let {statusCode = 500 , message = "something went wrong"} = err;
+    // Check if it's an API request (JSON expected)
+    if(req.accepts('json')) {
+        return res.status(statusCode).json({ status: 'error', message });
+    }
     res.status(statusCode).render("error.ejs",{message});
 })
 
