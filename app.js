@@ -11,6 +11,7 @@ const ExpressError = require("./utils/ExpressError.js");
 const Listings = require("./routes/listing.js");
 const Reviews = require("./routes/review.js");
 const Users = require("./routes/user.js");
+const bookingRoutes = require('./routes/booking');
 const methodOverride = require('method-override');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
@@ -105,6 +106,9 @@ app.use("/listings/:id/review" , Reviews);
 app.get('/', (req, res) => {
     return res.redirect('/listings');
 });
+
+//Booking route
+app.use('/', bookingRoutes);
 
 //User route
 app.use("/" , Users);

@@ -639,7 +639,7 @@
             </div>
 
             <div class="filter-dropdown-container">
-                <div class="collapse show" id="floatingFilterPanel">
+                <div class="collapse" id="floatingFilterPanel">
                     <div class="glass-panel shadow-lg">
 
                         <div>
@@ -1091,6 +1091,36 @@
                     } catch (err) { console.error(err); }
                 });
             });
+
+            // --- 10. SYNCHRONIZE FILTER & SORT BUTTONS ---
+            const filterPanel = document.getElementById("floatingFilterPanel");
+            const sortDropdownEl = document.querySelector('.dropdown.h-100');
+
+            if (sortDropdownEl && filterPanel) {
+                // When sort dropdown is opened, hide the collapse filter panel
+                sortDropdownEl.addEventListener('show.bs.dropdown', function () {
+                    const bsCollapse = bootstrap.Collapse.getInstance(filterPanel);
+                    if (bsCollapse && filterPanel.classList.contains('show')) {
+                        bsCollapse.hide();
+                    } else if (filterPanel.classList.contains('show')) {
+                        const col = new bootstrap.Collapse(filterPanel, { toggle: false });
+                        col.hide();
+                    }
+                });
+            }
+
+            if (filterPanel) {
+                // When collapse filter panel is opened, hide the sort dropdown
+                filterPanel.addEventListener('show.bs.collapse', function () {
+                    const sortToggle = document.querySelector('.dropdown .filter-toggle-btn[data-bs-toggle="dropdown"]');
+                    if (sortToggle) {
+                        const bsDropdown = bootstrap.Dropdown.getInstance(sortToggle);
+                        if (bsDropdown) {
+                            bsDropdown.hide();
+                        }
+                    }
+                });
+            }
 
             // Initialize on load
             executeFilterAndSort();

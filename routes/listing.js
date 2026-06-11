@@ -22,6 +22,8 @@ router.post('/:id/wishlist', isLoggedin, wrapAsync(listingController.toggleWishl
 
 router.post('/ai-price-suggestion', isLoggedin, wrapAsync(listingController.getAiPriceSuggestion));
 
+router.get('/:id/bookings', wrapAsync(listingController.getBookings));
+
 router.route('/:id')
 .get(wrapAsync(listingController.showListing))
 .put(isLoggedin, isOwner ,upload.single('image'), wrapAsync(listingController.updateListing))
