@@ -386,6 +386,100 @@
                 <% } %>
                 
             </div>
+
+            <!-- Booking Section -->
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+            <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+            <div class="booking-section mt-5 pt-4 border-top" id="bookingSection">
+                <h4 class="section-title mb-3"><i class="fa-regular fa-calendar-check text-danger me-2"></i>Book Your Stay</h4>
+                
+                <% if (currUser) { %>
+                    <% if (listing.owner._id.equals(currUser._id)) { %>
+                        <div class="alert alert-warning border-0 rounded-3" style="background-color: #fef3c7; color: #92400e;">
+                            <i class="fa-solid fa-circle-info me-2"></i> You are the owner of this property. Owners cannot book their own listings.
+                        </div>
+                    <% } else { %>
+                        <div class="card border-0 p-4 shadow-sm bg-white" style="border-radius: 16px; border: 1px solid #ebebeb !important;">
+                            <div class="row g-3 align-items-center mb-3">
+                                <div class="col-sm-6">
+                                    <button type="button" class="btn btn-outline-dark w-100 py-2 fw-semibold" id="checkAvailabilityBtn" style="border-radius: 10px;">
+                                        <i class="fa-solid fa-calendar-days text-danger me-2"></i> Check Availability
+                                    </button>
+                                </div>
+                                <div class="col-sm-6 text-muted text-sm-start text-center" style="font-size: 0.85rem;" id="availabilityStatus">
+                                    Click to check booked dates and unlock the calendar.
+                                </div>
+                            </div>
+
+                            <form method="POST" action="/listings/<%= listing._id %>/book" class="needs-validation" novalidate id="bookingForm">
+                                <div class="mb-3">
+                                    <label for="dateRange" class="form-label fw-bold text-dark" style="font-size: 0.9rem;">Select Date Range</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px; border: 1px solid #b0b0b0;"><i class="fa-regular fa-calendar-days text-muted"></i></span>
+                                        <input type="text" id="dateRange" class="form-control bg-white border-start-0" placeholder="Choose check-in and check-out dates" readonly required disabled style="border-radius: 0 10px 10px 0; border: 1px solid #b0b0b0; height: 50px;">
+                                        <div class="invalid-feedback">Please select a valid date range.</div>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" name="checkIn" id="checkIn" required>
+                                <input type="hidden" name="checkOut" id="checkOut" required>
+
+                                <!-- Booking Summary Card -->
+                                <div id="bookingSummary" class="card border-0 p-3 mb-3 d-none" style="border-radius: 12px; background-color: #fafafa; border: 1px solid #ebebeb !important;">
+                                    <h6 class="fw-bold text-dark mb-3" style="font-size: 0.95rem;">Stay Summary</h6>
+                                    
+                                    <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                        <span class="text-muted">Dates:</span>
+                                        <span id="selectedDatesText" class="fw-semibold text-dark text-end"></span>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                        <span class="text-muted">Nights:</span>
+                                        <span id="nightsCountText" class="fw-semibold text-dark"></span>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between mb-2" style="font-size: 0.9rem;">
+                                        <span class="text-muted">Rate:</span>
+                                        <span class="fw-semibold text-dark">₹<%= listing.price.toLocaleString() %> / night</span>
+                                    </div>
+
+                                    <hr class="my-2" style="border-top: 1px solid #ebebeb;">
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <span class="fw-bold text-dark" style="font-size: 1rem;">Total Cost:</span>
+                                        <div class="text-end">
+                                            <span class="fw-extrabold text-dark fs-5">₹<span id="totalPriceText" data-base="0" data-tax="0">0</span></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Tax Toggle matching site standard -->
+                                    <div class="tax-toggle" id="bookingTaxToggle" style="border: 1px solid rgba(0,0,0,0.1); border-radius: 10px; padding: 0.6rem 0.8rem; background-color: #fff; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: space-between;">
+                                        <div class="tax-text-col" style="display: flex; flex-direction: column;">
+                                            <label for="bookingTaxSwitch" style="font-size: 0.85rem; font-weight: 600; cursor: pointer; margin: 0; color: #222;">Total after taxes</label>
+                                            <span class="tax-subtext" style="font-size: 0.72rem; color: #717171; margin-top: 0.1rem;">Includes 17% service fees & taxes</span>
+                                        </div>
+                                        <div class="form-check form-switch m-0">
+                                            <input class="form-check-input m-0" type="checkbox" role="switch" id="bookingTaxSwitch" style="cursor: pointer;" onclick="event.stopPropagation()" checked>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn-reserve w-100 py-3 mt-2 text-white" id="bookBtn" disabled style="font-weight: 700; border-radius: 10px; font-size: 1rem;">
+                                    <i class="fa-solid fa-bolt me-2"></i> Book Stay
+                                </button>
+                            </form>
+                        </div>
+                    <% } %>
+                <% } else { %>
+                    <div class="card border-0 p-4 text-center bg-white shadow-sm" style="border-radius: 16px; border: 1px solid #ebebeb !important;">
+                        <i class="fa-solid fa-user-lock text-muted mb-3" style="font-size: 2.5rem;"></i>
+                        <h5 class="fw-bold text-dark">Login to book your stay</h5>
+                        <p class="text-muted" style="font-size: 0.9rem;">You need to log in to WanderStay to select dates and complete your reservation.</p>
+                        <a href="/login" class="btn-edit d-inline-block mx-auto mt-2 px-5 py-2">Login Now</a>
+                    </div>
+                <% } %>
+            </div>
         </div>
 
         <div class="col-lg-4">
@@ -396,7 +490,7 @@
                         <span>/ night</span>
                     </div>
                     
-                    <button class="btn-reserve mt-2">Reserve</button>
+                    <button class="btn-reserve mt-2" id="stickyReserveBtn">Reserve</button>
                     
                     <div class="text-center text-muted mt-3" style="font-size: 0.85rem;">
                         You won't be charged yet
@@ -407,3 +501,175 @@
 
     </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkAvailabilityBtn = document.getElementById("checkAvailabilityBtn");
+        const dateRangeInput = document.getElementById("dateRange");
+        const availabilityStatus = document.getElementById("availabilityStatus");
+        const checkInHidden = document.getElementById("checkIn");
+        const checkOutHidden = document.getElementById("checkOut");
+        const bookingSummary = document.getElementById("bookingSummary");
+        const selectedDatesText = document.getElementById("selectedDatesText");
+        const nightsCountText = document.getElementById("nightsCountText");
+        const totalPriceText = document.getElementById("totalPriceText");
+        const bookBtn = document.getElementById("bookBtn");
+        const bookingTaxSwitch = document.getElementById("bookingTaxSwitch");
+        const bookingTaxToggle = document.getElementById("bookingTaxToggle");
+        
+        let fpInstance = null;
+        let bookedRanges = [];
+        
+        // Smooth scroll for the reserve button on the right
+        const stickyReserveBtn = document.getElementById("stickyReserveBtn");
+        if (stickyReserveBtn) {
+            stickyReserveBtn.addEventListener("click", function() {
+                const bookingSec = document.getElementById("bookingSection");
+                if (bookingSec) {
+                    bookingSec.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        }
+
+        if (checkAvailabilityBtn) {
+            checkAvailabilityBtn.addEventListener("click", async function () {
+                checkAvailabilityBtn.disabled = true;
+                checkAvailabilityBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Loading...';
+                
+                try {
+                    const response = await fetch("/listings/<%= listing._id %>/bookings");
+                    if (!response.ok) {
+                        throw new Error("Could not fetch bookings");
+                    }
+                    const data = await response.json();
+                    
+                    // Bookings returned are array of { checkIn, checkOut }
+                    bookedRanges = data.map(b => {
+                        return {
+                            from: new Date(b.checkIn),
+                            to: new Date(b.checkOut)
+                        };
+                    });
+                    
+                    // Initialize/Update Flatpickr
+                    if (fpInstance) {
+                        fpInstance.destroy();
+                    }
+                    
+                    fpInstance = flatpickr(dateRangeInput, {
+                        mode: "range",
+                        minDate: "today",
+                        dateFormat: "Y-m-d",
+                        disable: bookedRanges,
+                        onChange: function (selectedDates, dateStr, instance) {
+                            if (selectedDates.length === 2) {
+                                const start = selectedDates[0];
+                                const end = selectedDates[1];
+                                
+                                // Check if any booked date is in between the selection
+                                let conflict = false;
+                                for (let range of bookedRanges) {
+                                    if (start < range.to && end > range.from) {
+                                        conflict = true;
+                                        break;
+                                    }
+                                }
+                                
+                                if (conflict) {
+                                    alert("Your selection overlaps with an existing booking. Please pick another range.");
+                                    instance.clear();
+                                    checkInHidden.value = "";
+                                    checkOutHidden.value = "";
+                                    bookingSummary.classList.add("d-none");
+                                    bookBtn.disabled = true;
+                                    return;
+                                }
+
+                                // Format dates in YYYY-MM-DD local timezone format
+                                const formatDateLocal = (date) => {
+                                    const year = date.getFullYear();
+                                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                                    const day = String(date.getDate()).padStart(2, '0');
+                                    return `${year}-${month}-${day}`;
+                                };
+
+                                checkInHidden.value = formatDateLocal(start);
+                                checkOutHidden.value = formatDateLocal(end);
+                                
+                                // Calc nights
+                                const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
+                                if (diffDays <= 0) {
+                                    bookBtn.disabled = true;
+                                    return;
+                                }
+                                
+                                // Update Summary
+                                selectedDatesText.textContent = `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`;
+                                nightsCountText.textContent = `${diffDays} ${diffDays === 1 ? 'night' : 'nights'}`;
+                                
+                                const baseRate = <%= listing.price %>;
+                                const baseTotal = diffDays * baseRate;
+                                const taxTotal = Math.round(baseTotal * 1.17);
+                                
+                                totalPriceText.setAttribute("data-base", baseTotal);
+                                totalPriceText.setAttribute("data-tax", taxTotal);
+                                
+                                // Set total based on active tax switch status
+                                if (bookingTaxSwitch.checked) {
+                                    totalPriceText.textContent = taxTotal.toLocaleString('en-IN');
+                                } else {
+                                    totalPriceText.textContent = baseTotal.toLocaleString('en-IN');
+                                }
+                                
+                                bookingSummary.classList.remove("d-none");
+                                bookBtn.disabled = false;
+                            } else {
+                                checkInHidden.value = "";
+                                checkOutHidden.value = "";
+                                bookingSummary.classList.add("d-none");
+                                bookBtn.disabled = true;
+                            }
+                        }
+                    });
+                    
+                    dateRangeInput.disabled = false;
+                    availabilityStatus.innerHTML = '<span class="text-success fw-bold"><i class="fa-solid fa-circle-check"></i> Dates Loaded.</span> Calendar unlocked!';
+                    checkAvailabilityBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate me-2"></i>Refresh Dates';
+                    checkAvailabilityBtn.disabled = false;
+                    
+                    // Open Flatpickr calendar instantly
+                    setTimeout(() => fpInstance.open(), 100);
+                    
+                } catch (err) {
+                    console.error(err);
+                    availabilityStatus.innerHTML = '<span class="text-danger fw-bold"><i class="fa-solid fa-triangle-exclamation"></i> Error loading dates.</span>';
+                    checkAvailabilityBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation me-2"></i>Retry';
+                    checkAvailabilityBtn.disabled = false;
+                }
+            });
+        }
+        
+        // Tax switch toggle functionality
+        if (bookingTaxSwitch) {
+            bookingTaxToggle.addEventListener("click", function() {
+                bookingTaxSwitch.click();
+            });
+            
+            bookingTaxSwitch.addEventListener("change", function() {
+                const baseTotal = parseInt(totalPriceText.getAttribute("data-base")) || 0;
+                const taxTotal = parseInt(totalPriceText.getAttribute("data-tax")) || 0;
+                
+                totalPriceText.style.opacity = 0;
+                setTimeout(() => {
+                    if (bookingTaxSwitch.checked) {
+                        totalPriceText.textContent = taxTotal.toLocaleString('en-IN');
+                    } else {
+                        totalPriceText.textContent = baseTotal.toLocaleString('en-IN');
+                    }
+                    totalPriceText.style.opacity = 1;
+                }, 150);
+            });
+            totalPriceText.style.transition = "opacity 0.15s ease";
+        }
+    });
+</script>

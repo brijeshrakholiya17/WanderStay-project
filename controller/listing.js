@@ -3,6 +3,7 @@ const User = require('../models/user.js');
 const { v4: uuidv4 } = require('uuid');
 const ExpressError = require("../utils/ExpressError.js");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const Booking = require("../models/booking.js");
 
 module.exports.index = async (req,res) => {
     const search = req.query.search;
@@ -244,4 +245,11 @@ module.exports.getAiPriceSuggestion = async (req, res) => {
         });
     }
 };
+
+module.exports.getBookings = async (req, res) => {
+    const { id } = req.params;
+    const bookings = await Booking.find({ listing: id, status: 'confirmed' }, 'checkIn checkOut');
+    res.json(bookings);
+};
+
 
