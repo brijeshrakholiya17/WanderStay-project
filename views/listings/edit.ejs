@@ -381,6 +381,7 @@
 
                     <!-- Changed name="listing[image]" to name="image" -->
                     <input type="file" name="image" id="image" accept="image/*">
+                    <div class="invalid-feedback d-block mt-2" style="display: none;">Please select a valid image file.</div>
                 </div>
 
                 <div class="row g-3 mb-4">
@@ -391,6 +392,7 @@
                                 <!-- Changed name="listing[price]" to name="price" -->
                                 <input type="number" name="price" value="<%= listing.price %>" class="form-control" id="price" placeholder="Price" required>
                                 <label for="price">Price per night</label>
+                                <div class="invalid-feedback px-2">Price should be valid</div>
                             </div>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-2 px-1">
@@ -421,6 +423,7 @@
                                 <option value="Towers" <%= listing.category === 'Towers' ? 'selected' : '' %>>Towers</option>
                             </select>
                             <label for="category">Category</label>
+                            <div class="invalid-feedback px-2">Please select a category</div>
                         </div>
                     </div>
                 </div>
@@ -431,6 +434,7 @@
                             <!-- Changed name="listing[location]" to name="location" -->
                             <input type="text" name="location" value="<%= listing.location %>" class="form-control" id="location" placeholder="Location" required>
                             <label for="location">City / Location</label>
+                            <div class="invalid-feedback px-2">Location should be valid</div>
                         </div>
                     </div>
 
@@ -439,6 +443,7 @@
                             <!-- Changed name="listing[country]" to name="country" -->
                             <input type="text" name="country" value="<%= listing.country %>" class="form-control" id="country" placeholder="Country" required>
                             <label for="country">Country</label>
+                            <div class="invalid-feedback px-2">Country name should be valid</div>
                         </div>
                     </div>
                 </div>
@@ -447,6 +452,33 @@
                     <input type="text" name="address" value="<%= listing.address || '' %>" class="form-control" id="address" placeholder="Address" required>
                     <label for="address">Exact Address</label>
                     <div class="invalid-feedback px-2">Please enter the exact address for mapping.</div>
+                </div>
+
+                <!-- Map Location Picker (Optional) -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold mb-1"><i class="fa-solid fa-map-location-dot text-danger me-2"></i>Pin Location on Map (Optional)</label>
+                    <p class="text-muted mb-2" style="font-size: 0.85rem; line-height: 1.4;">
+                        Search or type the address, city, and country above, and the map will center on that area. Then, click directly on the map to pin the exact location of your property. If left unpinned, we will automatically locate it.
+                    </p>
+                    
+                    <!-- Hidden inputs for manual coordinates -->
+                    <input type="hidden" name="latitude" id="latInput" value="<%= listing.geometry && listing.geometry.coordinates ? listing.geometry.coordinates[1] : '' %>">
+                    <input type="hidden" name="longitude" id="lngInput" value="<%= listing.geometry && listing.geometry.coordinates ? listing.geometry.coordinates[0] : '' %>">
+
+                    <!-- Map Libre Assets -->
+                    <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css">
+                    <script src="/vendor/maplibre-gl/maplibre-gl.js"></script>
+
+                    <div class="position-relative overflow-hidden" style="border: 1px solid #b0b0b0; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                        <div id="manualMapPicker" style="width: 100%; height: 320px; background-color: #fafafa;"></div>
+                        
+                        <!-- Pinned coordinate badge -->
+                        <div id="pickerCoordBadge" class="position-absolute bottom-0 start-0 m-3 p-2 bg-white rounded shadow-sm d-none" style="z-index: 10; font-size: 0.8rem; border: 1px solid #ebebeb; display: flex; align-items: center; gap: 8px;">
+                            <span class="fw-bold text-dark"><i class="fa-solid fa-location-dot text-danger"></i> Pinned:</span> 
+                            <span id="pickerCoordText" class="text-muted"></span>
+                            <button type="button" id="clearPinBtn" class="btn btn-sm btn-link text-danger p-0 ms-2 fw-bold text-decoration-none" style="font-size: 0.8rem;">Clear Pin</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="btn-actions">
@@ -473,9 +505,21 @@
             if (file) {
                 // Ensure it's an image
                 if (!file.type.startsWith('image/')) {
-                    alert('Please select a valid image file.');
+                    const feedback = document.querySelector('#uploadZone .invalid-feedback');
+                    if (feedback) {
+                        feedback.textContent = 'Please select a valid image file.';
+                        feedback.style.display = 'block';
+                    }
                     imageInput.value = ''; // Clear the input
+                    imagePreview.src = "";
+                    imagePreview.style.display = 'none';
+                    uploadContent.style.display = 'block';
                     return;
+                } else {
+                    const feedback = document.querySelector('#uploadZone .invalid-feedback');
+                    if (feedback) {
+                        feedback.style.display = 'none';
+                    }
                 }
 
                 // Read and display the image
@@ -493,5 +537,115 @@
                 uploadContent.style.display = 'block';
             }
         });
+
+        // Initialize Map Picker with pre-existing coordinates if any
+        if (document.getElementById("manualMapPicker")) {
+            const existingGeom = <%- (listing.geometry && listing.geometry.coordinates) ? JSON.stringify(listing.geometry) : 'null' %>;
+            const hasExisting = existingGeom && existingGeom.coordinates && existingGeom.coordinates.length === 2;
+
+            const defaultCenter = [78.9629, 20.5937];
+            const center = hasExisting ? existingGeom.coordinates : defaultCenter;
+            const zoom = hasExisting ? 14 : 4;
+
+            const pickerMap = new maplibregl.Map({
+                container: "manualMapPicker",
+                style: "https://tiles.openfreemap.org/styles/liberty",
+                center: center,
+                zoom: zoom
+            });
+
+            pickerMap.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+            let pickerMarker = null;
+            const latInput = document.getElementById("latInput");
+            const lngInput = document.getElementById("lngInput");
+            const coordBadge = document.getElementById("pickerCoordBadge");
+            const coordText = document.getElementById("pickerCoordText");
+            const clearPinBtn = document.getElementById("clearPinBtn");
+
+            // Setup initial marker if geometry exists
+            if (hasExisting) {
+                const lng = existingGeom.coordinates[0];
+                const lat = existingGeom.coordinates[1];
+                pickerMarker = new maplibregl.Marker({ color: "#fe424d" })
+                    .setLngLat([lng, lat])
+                    .addTo(pickerMap);
+                coordText.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                coordBadge.classList.remove("d-none");
+            }
+
+            // Click map to pin location
+            pickerMap.on("click", function (e) {
+                const lng = e.lngLat.lng;
+                const lat = e.lngLat.lat;
+
+                latInput.value = lat;
+                lngInput.value = lng;
+
+                if (pickerMarker) {
+                    pickerMarker.setLngLat([lng, lat]);
+                } else {
+                    pickerMarker = new maplibregl.Marker({ color: "#fe424d" })
+                        .setLngLat([lng, lat])
+                        .addTo(pickerMap);
+                }
+
+                coordText.textContent = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                coordBadge.classList.remove("d-none");
+            });
+
+            // Clear pinned location
+            clearPinBtn.addEventListener("click", function () {
+                latInput.value = "";
+                lngInput.value = "";
+                if (pickerMarker) {
+                    pickerMarker.remove();
+                    pickerMarker = null;
+                }
+                coordBadge.classList.add("d-none");
+            });
+
+            // Auto fly map to area when user edits address components
+            const addressInput = document.getElementById("address");
+            const locationInput = document.getElementById("location");
+            const countryInput = document.getElementById("country");
+
+            const flyToSearchedArea = async () => {
+                const address = addressInput.value.trim();
+                const location = locationInput.value.trim();
+                const country = countryInput.value.trim();
+
+                const components = [];
+                if (address) components.push(address);
+                if (location) components.push(location);
+                if (country) components.push(country);
+
+                if (components.length === 0) return;
+
+                const queryStr = components.join(", ");
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryStr)}&format=json&limit=1`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data && data.length > 0) {
+                            const lon = parseFloat(data[0].lon);
+                            const lat = parseFloat(data[0].lat);
+                            pickerMap.flyTo({
+                                center: [lon, lat],
+                                zoom: 14,
+                                essential: true
+                            });
+                        }
+                    }
+                } catch (err) {
+                    console.error("Manual picker geocoding fly failed:", err);
+                }
+            };
+
+            // Trigger when fields lose focus or change
+            addressInput.addEventListener("change", flyToSearchedArea);
+            locationInput.addEventListener("change", flyToSearchedArea);
+            countryInput.addEventListener("change", flyToSearchedArea);
+        }
     });
 </script>

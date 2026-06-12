@@ -5,9 +5,21 @@ const ExpressError = require("../utils/ExpressError.js");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Booking = require("../models/booking.js");
 
-const getGeocodedCoordinates = async (address, location, country) => {
+const getGeocodedCoordinates = async (title, address, location, country) => {
     try {
-        const queryStr = `${address}, ${location}, ${country}`;
+        const components = [];
+        if (title && title.trim()) components.push(title.trim());
+        if (address && address.trim() && !components.some(c => c.toLowerCase() === address.trim().toLowerCase())) {
+            components.push(address.trim());
+        }
+        if (location && location.trim() && !components.some(c => c.toLowerCase() === location.trim().toLowerCase())) {
+            components.push(location.trim());
+        }
+        if (country && country.trim() && !components.some(c => c.toLowerCase() === country.trim().toLowerCase())) {
+            components.push(country.trim());
+        }
+        
+        const queryStr = components.join(", ");
         const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryStr)}&format=json&limit=1`;
         
         const response = await fetch(url, {
@@ -25,21 +37,76 @@ const getGeocodedCoordinates = async (address, location, country) => {
             }
         }
         
-        // Fallback to location and country
-        const fallbackQuery = `${location}, ${country}`;
-        const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fallbackQuery)}&format=json&limit=1`;
-        const fallbackResponse = await fetch(fallbackUrl, {
-            headers: {
-                "User-Agent": "WanderStay-App/1.0"
-            }
-        });
+        // Fallback to title, location and country
+        const fallback1 = [];
+        if (title && title.trim()) fallback1.push(title.trim());
+        if (location && location.trim() && !fallback1.some(c => c.toLowerCase() === location.trim().toLowerCase())) {
+            fallback1.push(location.trim());
+        }
+        if (country && country.trim() && !fallback1.some(c => c.toLowerCase() === country.trim().toLowerCase())) {
+            fallback1.push(country.trim());
+        }
         
-        if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            if (fallbackData && fallbackData.length > 0) {
-                const lng = parseFloat(fallbackData[0].lon);
-                const lat = parseFloat(fallbackData[0].lat);
-                return [lng, lat];
+        if (fallback1.length > 0) {
+            const queryStrF1 = fallback1.join(", ");
+            const urlF1 = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryStrF1)}&format=json&limit=1`;
+            const resF1 = await fetch(urlF1, {
+                headers: { "User-Agent": "WanderStay-App/1.0" }
+            });
+            if (resF1.ok) {
+                const dataF1 = await resF1.json();
+                if (dataF1 && dataF1.length > 0) {
+                    return [parseFloat(dataF1[0].lon), parseFloat(dataF1[0].lat)];
+                }
+            }
+        }
+        
+        // Fallback to address, location and country
+        const fallbackComponents = [];
+        if (address && address.trim()) fallbackComponents.push(address.trim());
+        if (location && location.trim() && !fallbackComponents.some(c => c.toLowerCase() === location.trim().toLowerCase())) {
+            fallbackComponents.push(location.trim());
+        }
+        if (country && country.trim() && !fallbackComponents.some(c => c.toLowerCase() === country.trim().toLowerCase())) {
+            fallbackComponents.push(country.trim());
+        }
+        
+        if (fallbackComponents.length > 0) {
+            const fallbackQuery = fallbackComponents.join(", ");
+            const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fallbackQuery)}&format=json&limit=1`;
+            const fallbackResponse = await fetch(fallbackUrl, {
+                headers: {
+                    "User-Agent": "WanderStay-App/1.0"
+                }
+            });
+            
+            if (fallbackResponse.ok) {
+                const fallbackData = await fallbackResponse.json();
+                if (fallbackData && fallbackData.length > 0) {
+                    const lng = parseFloat(fallbackData[0].lon);
+                    const lat = parseFloat(fallbackData[0].lat);
+                    return [lng, lat];
+                }
+            }
+        }
+
+        // Deep fallback to location and country only
+        const lastFallback = [];
+        if (location && location.trim()) lastFallback.push(location.trim());
+        if (country && country.trim() && !lastFallback.some(c => c.toLowerCase() === country.trim().toLowerCase())) {
+            lastFallback.push(country.trim());
+        }
+        if (lastFallback.length > 0) {
+            const lastQuery = lastFallback.join(", ");
+            const lastUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(lastQuery)}&format=json&limit=1`;
+            const lastResponse = await fetch(lastUrl, {
+                headers: { "User-Agent": "WanderStay-App/1.0" }
+            });
+            if (lastResponse.ok) {
+                const lastData = await lastResponse.json();
+                if (lastData && lastData.length > 0) {
+                    return [parseFloat(lastData[0].lon), parseFloat(lastData[0].lat)];
+                }
             }
         }
         
@@ -108,9 +175,12 @@ module.exports.createListing = async (req,res,next) => {
     
     // Removed: let id = uuidv4(); 
     
-    let {title, description, image, price, location, country, category, address} = req.body;
+    let {title, description, image, price, location, country, category, address, latitude, longitude} = req.body;
     
     // Validate required fields
+    if(!title) {
+        throw new ExpressError(400, "Title is missing");
+    }
     if(!description) {
         throw new ExpressError(400, "Description is missing");
     }
@@ -123,14 +193,27 @@ module.exports.createListing = async (req,res,next) => {
     if(!address) {
         throw new ExpressError(400, "Address is missing");
     }
+    if(!price || isNaN(Number(price))) {
+        throw new ExpressError(400, "Price should be a valid number");
+    }
+    if(!category) {
+        throw new ExpressError(400, "Category is missing");
+    }
 
     let geometry = undefined;
-    const coords = await getGeocodedCoordinates(address, location, country);
-    if (coords) {
+    if (latitude && longitude && !isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude))) {
         geometry = {
             type: "Point",
-            coordinates: coords
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
         };
+    } else {
+        const coords = await getGeocodedCoordinates(title, address, location, country);
+        if (coords) {
+            geometry = {
+                type: "Point",
+                coordinates: coords
+            };
+        }
     }
     
     const newlist = new Listing({
@@ -166,7 +249,7 @@ module.exports.renderEditForm = async (req,res) => {
 
 module.exports.updateListing = async (req,res) => {
     let {id} = req.params;      
-    const {title, description, price, location, country, category, address} = req.body;
+    const {title, description, price, location, country, category, address, latitude, longitude} = req.body;
     
     let updateData = {
         title,
@@ -178,8 +261,13 @@ module.exports.updateListing = async (req,res) => {
         address
     };
 
-    if (address) {
-        const coords = await getGeocodedCoordinates(address, location, country);
+    if (latitude && longitude && !isNaN(parseFloat(latitude)) && !isNaN(parseFloat(longitude))) {
+        updateData.geometry = {
+            type: "Point",
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+        };
+    } else if (address) {
+        const coords = await getGeocodedCoordinates(title, address, location, country);
         if (coords) {
             updateData.geometry = {
                 type: "Point",
