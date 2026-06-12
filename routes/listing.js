@@ -16,6 +16,8 @@ router.route('/')
 //New Route
 router.get('/new', isLoggedin ,wrapAsync(listingController.renderNewForm));
 
+router.get('/map', wrapAsync(listingController.renderMapPage));
+
 router.get('/wishlist', isLoggedin, wrapAsync(listingController.showWishlist));
 
 router.post('/:id/wishlist', isLoggedin, wrapAsync(listingController.toggleWishlist));
