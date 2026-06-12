@@ -480,6 +480,32 @@
                     </div>
                 <% } %>
             </div>
+
+            <!-- Map Location Section -->
+            <div class="map-section mt-5 pt-4 border-top">
+                <h4 class="section-title mb-3"><i class="fa-regular fa-map text-danger me-2"></i>Where you'll be</h4>
+                <% if (listing.geometry && listing.geometry.coordinates && listing.geometry.coordinates.length === 2 && typeof listing.geometry.coordinates[0] === 'number' && typeof listing.geometry.coordinates[1] === 'number') { %>
+                    <!-- MapLibre Assets for Show Page -->
+                    <link rel="stylesheet" href="/vendor/maplibre-gl/maplibre-gl.css">
+                    <script src="/vendor/maplibre-gl/maplibre-gl.js"></script>
+                    
+                    <div id="listingShowMap" 
+                         data-lng="<%= listing.geometry.coordinates[0] %>" 
+                         data-lat="<%= listing.geometry.coordinates[1] %>" 
+                         data-title="<%= listing.title %>" 
+                         data-location="<%= listing.location || '' %>"
+                         data-address="<%= listing.address || '' %>"
+                         style="width: 100%; height: 350px; border-radius: 16px; border: 1px solid #ebebeb; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03);"
+                    ></div>
+                    
+                    <script src="/js/listing-show-map.js"></script>
+                <% } else { %>
+                    <div class="alert alert-light border rounded-3 p-4 text-center" style="background-color: #fafafa; border-color: #ebebeb !important;">
+                        <i class="fa-solid fa-map-location-dot text-muted mb-2" style="font-size: 2rem;"></i>
+                        <p class="text-muted m-0" style="font-size: 0.95rem;">Map location is not available for this stay yet.</p>
+                    </div>
+                <% } %>
+            </div>
         </div>
 
         <div class="col-lg-4">

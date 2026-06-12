@@ -31,8 +31,22 @@ const ListingSchema = new Schema({
     category : {
         type : String,
         required : true,
+    },
+    address: String,
+    geometry: {
+        type: {
+            type: String,
+            enum: ["Point"],
+            default: "Point"
+        },
+        coordinates: {
+            type: [Number],
+            default: undefined
+        }
     }
 });
+
+ListingSchema.index({ geometry: "2dsphere" });
 
 ListingSchema.post("findOneAndDelete", async (listing) => {
     if(listing){

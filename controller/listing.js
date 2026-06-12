@@ -5,6 +5,50 @@ const ExpressError = require("../utils/ExpressError.js");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const Booking = require("../models/booking.js");
 
+const getGeocodedCoordinates = async (address, location, country) => {
+    try {
+        const queryStr = `${address}, ${location}, ${country}`;
+        const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(queryStr)}&format=json&limit=1`;
+        
+        const response = await fetch(url, {
+            headers: {
+                "User-Agent": "WanderStay-App/1.0"
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const lng = parseFloat(data[0].lon);
+                const lat = parseFloat(data[0].lat);
+                return [lng, lat];
+            }
+        }
+        
+        // Fallback to location and country
+        const fallbackQuery = `${location}, ${country}`;
+        const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(fallbackQuery)}&format=json&limit=1`;
+        const fallbackResponse = await fetch(fallbackUrl, {
+            headers: {
+                "User-Agent": "WanderStay-App/1.0"
+            }
+        });
+        
+        if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            if (fallbackData && fallbackData.length > 0) {
+                const lng = parseFloat(fallbackData[0].lon);
+                const lat = parseFloat(fallbackData[0].lat);
+                return [lng, lat];
+            }
+        }
+        
+    } catch (error) {
+        console.error("Geocoding failed:", error);
+    }
+    return null;
+};
+
 module.exports.index = async (req,res) => {
     const search = req.query.search;
     const filter = req.query.value;
@@ -64,7 +108,7 @@ module.exports.createListing = async (req,res,next) => {
     
     // Removed: let id = uuidv4(); 
     
-    let {title, description, image, price, location, country, category} = req.body;
+    let {title, description, image, price, location, country, category, address} = req.body;
     
     // Validate required fields
     if(!description) {
@@ -76,6 +120,18 @@ module.exports.createListing = async (req,res,next) => {
     if(!country) {
         throw new ExpressError(400, "Country is missing");
     }
+    if(!address) {
+        throw new ExpressError(400, "Address is missing");
+    }
+
+    let geometry = undefined;
+    const coords = await getGeocodedCoordinates(address, location, country);
+    if (coords) {
+        geometry = {
+            type: "Point",
+            coordinates: coords
+        };
+    }
     
     const newlist = new Listing({
         // Removed _id assignment entirely. MongoDB will handle it.
@@ -86,6 +142,8 @@ module.exports.createListing = async (req,res,next) => {
         location: location,
         country: country,
         category: category,
+        address: address,
+        geometry: geometry,
         owner: req.user._id
     });
     
@@ -108,7 +166,31 @@ module.exports.renderEditForm = async (req,res) => {
 
 module.exports.updateListing = async (req,res) => {
     let {id} = req.params;      
-    let listing = await Listing.findByIdAndUpdate(id,req.body);
+    const {title, description, price, location, country, category, address} = req.body;
+    
+    let updateData = {
+        title,
+        description,
+        price,
+        location,
+        country,
+        category,
+        address
+    };
+
+    if (address) {
+        const coords = await getGeocodedCoordinates(address, location, country);
+        if (coords) {
+            updateData.geometry = {
+                type: "Point",
+                coordinates: coords
+            };
+        } else {
+            updateData.$unset = { geometry: "" };
+        }
+    }
+
+    let listing = await Listing.findByIdAndUpdate(id, updateData, { new: true });
 
     if(typeof req.file !== "undefined"){
         let url = req.file.path;
@@ -250,6 +332,37 @@ module.exports.getBookings = async (req, res) => {
     const { id } = req.params;
     const bookings = await Booking.find({ listing: id, status: 'confirmed' }, 'checkIn checkOut');
     res.json(bookings);
+};
+
+module.exports.renderMapPage = async (req, res) => {
+    const listings = await Listing.find({}).populate("owner");
+
+    const mapListings = listings
+        .filter(listing => {
+            const coords = listing.geometry && listing.geometry.coordinates;
+            return Array.isArray(coords)
+                && coords.length === 2
+                && typeof coords[0] === "number"
+                && typeof coords[1] === "number"
+                && coords[0] >= -180
+                && coords[0] <= 180
+                && coords[1] >= -90
+                && coords[1] <= 90;
+        })
+        .map(listing => ({
+            id: listing._id.toString(),
+            title: listing.title,
+            price: listing.price,
+            location: listing.location || "",
+            country: listing.country || "",
+            address: listing.address || "",
+            category: listing.category || "",
+            image: listing.image,
+            coordinates: listing.geometry.coordinates,
+            url: `/listings/${listing._id}`
+        }));
+
+    res.render("listings/map", { mapListings });
 };
 
 
