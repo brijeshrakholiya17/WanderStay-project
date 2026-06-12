@@ -309,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Dynamic zoom popup logic
             map.on("zoom", function () {
                 const zoom = map.getZoom();
-                if (zoom >= 15) {
+                if (zoom >= 11) {
                     if (!currentPopup) {
                         const center = map.getCenter();
                         let closestListing = null;

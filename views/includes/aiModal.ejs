@@ -225,14 +225,28 @@
         if (btnTrigger) {
             btnTrigger.addEventListener("click", function () {
                 // Fetch current values from listing page input fields
-                const titleVal = document.getElementById("title") ? document.getElementById("title").value.trim() : "";
-                const locationVal = document.getElementById("location") ? document.getElementById("location").value.trim() : "";
-                const countryVal = document.getElementById("country") ? document.getElementById("country").value.trim() : "";
+                const titleInput = document.getElementById("title");
+                const locationInput = document.getElementById("location");
+                const countryInput = document.getElementById("country");
+                const form = document.querySelector(".needs-validation");
+
+                const titleVal = titleInput ? titleInput.value.trim() : "";
+                const locationVal = locationInput ? locationInput.value.trim() : "";
+                const countryVal = countryInput ? countryInput.value.trim() : "";
                 const categoryVal = document.getElementById("category") ? document.getElementById("category").value.trim() : "";
                 
                 // Validate required fields for context
                 if (!titleVal || !locationVal || !countryVal) {
-                    alert("Please fill in the Property Title, Location, and Country fields on the form first to provide context for the AI pricing analysis.");
+                    if (form) {
+                        form.classList.add("was-validated");
+                    }
+                    if (!titleVal && titleInput) {
+                        titleInput.focus();
+                    } else if (!locationVal && locationInput) {
+                        locationInput.focus();
+                    } else if (!countryVal && countryInput) {
+                        countryInput.focus();
+                    }
                     return;
                 }
 

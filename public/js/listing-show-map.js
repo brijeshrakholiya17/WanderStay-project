@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Listen to zoom
     map.on("zoom", function () {
         const zoom = map.getZoom();
-        if (zoom >= 15) {
+        if (zoom >= 11) {
             if (!popup.isOpen()) {
                 popup.addTo(map);
                 autoOpened = true;
