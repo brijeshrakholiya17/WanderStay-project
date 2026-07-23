@@ -29,7 +29,8 @@ module.exports.isOwner = async(req,res,next) => {
         req.flash('error',"Listing not found");
         return res.redirect("/listings");
     }
-    if(!listing.owner._id.equals(req.user._id)){
+    const ownerId = listing.owner && (listing.owner._id || listing.owner);
+    if(!ownerId || !ownerId.equals(req.user._id)){
         req.flash('error',"You are not owner of this listing");
         return res.redirect(`/listings/${id}`);
     }
@@ -43,8 +44,17 @@ module.exports.isAuthor = async(req,res,next) => {
         req.flash('error',"Review not found");
         return res.redirect(`/listings/${id}`);
     }
-    if(!review.author._id.equals(req.user._id)){
-        req.flash('error',"You are not author of this review");
+    
+    // Allow either the author of the review or the owner of the listing to delete it
+    let listing = await Listing.findById(id);
+    const ownerId = listing && listing.owner && (listing.owner._id || listing.owner);
+    const authorId = review.author && (review.author._id || review.author);
+    
+    const isOwnerOfListing = ownerId && ownerId.equals(req.user._id);
+    const isAuthorOfReview = authorId && authorId.equals(req.user._id);
+    
+    if(!isAuthorOfReview && !isOwnerOfListing){
+        req.flash('error',"You are not authorized to delete this review");
         return res.redirect(`/listings/${id}`);
     }
     next();
