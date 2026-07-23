@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # WanderStay Node.js Web Application Service
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wanderstay-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - ATLASDB_URL=${ATLASDB_URL}
+      - SECRET=${SECRET:-supersecretwanderstaykey}
+      - CLOUD_NAME=${CLOUD_NAME}
+      - CLOUD_API_KEY=${CLOUD_API_KEY}
+      - CLOUD_API_SECRET=${CLOUD_API_SECRET}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENCAGE_API_KEY=${OPENCAGE_API_KEY}
+    networks:
+      - wanderstay-network
+
+# -----------------------------------------------------------------------------
+# Custom Isolated Bridge Network Definition
+# -----------------------------------------------------------------------------
+networks:
+  wanderstay-network:
+    driver: bridge
