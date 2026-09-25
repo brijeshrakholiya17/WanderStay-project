@@ -102,6 +102,11 @@ app.use("/listings" , Listings);
 //Review route
 app.use("/listings/:id/review" , Reviews);
 
+// Health check route
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: "ok" });
+});
+
 // Redirect root to listings (home)
 app.get('/', (req, res) => {
     return res.redirect('/listings');
