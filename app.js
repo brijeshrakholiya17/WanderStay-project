@@ -1,4 +1,4 @@
-if(process.env.NODE_ENV != "production"){
+if (process.env.NODE_ENV != "production") {
     require('dotenv').config();
 }
 
@@ -22,10 +22,10 @@ const User = require("./models/user.js");
 
 const db_url = process.env.ATLASDB_URL;
 
-app.set("view engine","ejs");
-app.set("views", path.join(__dirname,"views"));
-app.use(express.static(path.join(__dirname,"/public")));
-app.use(express.static(path.join(__dirname,"/assets")));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, "/public")));
+app.use(express.static(path.join(__dirname, "/assets")));
 
 // Serve the red SVG favicon at the legacy filename so browsers requesting
 // "/wanderlust icon.png" will receive the red SVG without needing a PNG binary.
@@ -35,22 +35,21 @@ app.get('/wanderlust-icon.png', (req, res) => {
 });
 app.use(methodOverride('_method'));
 app.use(express.json());
-app.use(express.urlencoded({extended : true}));
-app.engine('ejs',ejsMate);
+app.use(express.urlencoded({ extended: true }));
+app.engine('ejs', ejsMate);
 
 main()
     .then((res) => {
-        console.log("connected to database successfully");
+        console.log("Connected to MongoDB database successfully");
     })
     .catch((err) => {
         console.log(err);
     })
 
-async function main(){
-    try{
+async function main() {
+    try {
         await mongoose.connect(db_url);
-        console.log("Connected to MongoDB Atlas");
-    }catch(err){
+    } catch (err) {
         console.error("MongoDB connection failed:", err.message);
     }
 }
@@ -60,7 +59,7 @@ const store = MongoStore.create({
     crypto: {
         secret: process.env.SECRET
     },
-    touchAfter : 24 * 3600,
+    touchAfter: 24 * 3600,
 });
 
 store.on("error", (err) => {
@@ -69,13 +68,13 @@ store.on("error", (err) => {
 
 const sessionOptions = {
     store,
-    secret : process.env.SECRET,
-    resave : false,
-    saveUninitialized  :true,
-    cookie : {
-        expires : Date.now() + 7 * 24 * 60 * 60 * 1000,
-        maxAge : 7 * 24 * 60 * 60 * 1000,
-        httpOnly : true
+    secret: process.env.SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+        expires: Date.now() + 7 * 24 * 60 * 60 * 1000,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        httpOnly: true
     }
 };
 
@@ -89,7 +88,7 @@ passport.use(new LocalStrategy(User.authenticate()));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-app.use((req,res,next) => {
+app.use((req, res, next) => {
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     res.locals.currUser = req.user;
@@ -97,10 +96,10 @@ app.use((req,res,next) => {
 })
 
 //Listing route
-app.use("/listings" , Listings);
+app.use("/listings", Listings);
 
 //Review route
-app.use("/listings/:id/review" , Reviews);
+app.use("/listings/:id/review", Reviews);
 
 // Health check route
 app.get('/health', (req, res) => {
@@ -116,32 +115,31 @@ app.get('/', (req, res) => {
 app.use('/', bookingRoutes);
 
 //User route
-app.use("/" , Users);
+app.use("/", Users);
 
-app.all('*',(req,res,next) => {
-    next(new ExpressError(404,"Page not Found!"));
+app.all('*', (req, res, next) => {
+    next(new ExpressError(404, "Page not Found!"));
 })
 
-app.use((err,req,res,next) => {
-    let {statusCode = 500 , message = "something went wrong"} = err;
+app.use((err, req, res, next) => {
+    let { statusCode = 500, message = "something went wrong" } = err;
     // Check if it's an API request (JSON expected)
-    if(req.accepts('json')) {
+    if (req.accepts('json')) {
         return res.status(statusCode).json({ status: 'error', message });
     }
-    res.status(statusCode).render("error.ejs",{message});
+    res.status(statusCode).render("error.ejs", { message });
 })
 
-async function startServer(){
-    try{
+async function startServer() {
+    try {
         await mongoose.connect(db_url);
-        console.log("MongoDB connected");
 
         const PORT = process.env.PORT || 8080;
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
 
-    }catch(err){
+    } catch (err) {
         console.log("Database connection failed:", err);
     }
 }

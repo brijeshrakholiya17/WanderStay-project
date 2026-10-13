@@ -158,11 +158,16 @@
                 <!-- STEP 4: ERROR SCREEN -->
                 <div id="ai-step-error" class="d-none text-center py-4 py-sm-5">
                     <i class="fa-solid fa-circle-exclamation text-danger mb-3" style="font-size: 3.5rem;"></i>
-                    <h4 class="fw-bold text-dark mb-2" style="font-size: 1.3rem;">Pricing Suggestion Failed</h4>
-                    <p id="error-message" class="text-muted fs-7 mb-4 px-2 px-sm-5" style="line-height: 1.4;">There was a server issue processing your suggestion. Please check your internet connection or verify your API configuration.</p>
-                    <button type="button" id="btn-error-back" class="btn btn-outline-danger px-4 py-2 w-100 w-sm-auto" style="border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
-                        Try Again
-                    </button>
+                    <h4 class="fw-bold text-dark mb-2" style="font-size: 1.3rem;">Pricing Suggestion Notice</h4>
+                    <p id="error-message" class="text-muted fs-7 mb-4 px-2 px-sm-5" style="line-height: 1.4;">There was a temporary service delay processing your suggestion. Please check your network connection or try again.</p>
+                    <div class="d-flex flex-column flex-sm-row justify-content-center gap-2 px-3">
+                        <button type="button" id="btn-error-back" class="btn btn-outline-secondary px-4 py-2" style="border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+                            <i class="fa-solid fa-arrow-left me-1"></i> Edit Parameters
+                        </button>
+                        <button type="button" id="btn-error-retry" class="btn btn-danger px-4 py-2" style="background-color: #fe424d; border: none; border-radius: 10px; font-weight: 600; font-size: 0.9rem;">
+                            <i class="fa-solid fa-rotate-right me-1"></i> Retry Now
+                        </button>
+                    </div>
                 </div>
 
             </div>
@@ -364,6 +369,15 @@
             btnErrorBack.addEventListener("click", () => showStep(stepInput));
         }
 
+        const btnErrorRetry = document.getElementById("btn-error-retry");
+        if (btnErrorRetry) {
+            btnErrorRetry.addEventListener("click", () => {
+                if (btnGenerate) {
+                    btnGenerate.click();
+                }
+            });
+        }
+
         // Helper function to show specific screen inside modal
         function showStep(stepElement) {
             stepInput.classList.add("d-none");
@@ -443,7 +457,10 @@
             resConfidenceBadge.textContent = `${confidence} Confidence`;
             resConfidenceBadge.className = "badge px-3 py-2 fs-7"; // Reset classes
             
-            if (confidence.toLowerCase() === "high") {
+            if (data.isFallback || confidence.toLowerCase() === "estimated") {
+                resConfidenceBadge.textContent = "Market Benchmark";
+                resConfidenceBadge.classList.add("bg-info", "text-dark");
+            } else if (confidence.toLowerCase() === "high") {
                 resConfidenceBadge.classList.add("bg-success");
             } else if (confidence.toLowerCase() === "low") {
                 resConfidenceBadge.classList.add("bg-danger");
